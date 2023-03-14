@@ -2,7 +2,6 @@ package compiler.lib;
 
 import compiler.AST.*;
 import compiler.exc.IncomplException;
-import compiler.exc.TypeException;
 import compiler.exc.UnimplException;
 
 import static compiler.lib.FOOLlib.extractNodeName;
@@ -143,7 +142,7 @@ public class BaseASTVisitor<S, E extends Exception> {
         throw new UnimplException();
     }
 
-    public S visitNode(LessEqualNode n) throws E, TypeException {
+    public S visitNode(LessEqualNode n) throws E {
         throw new UnimplException();
     }
 
@@ -151,11 +150,11 @@ public class BaseASTVisitor<S, E extends Exception> {
         throw new UnimplException();
     }
 
-    public S visitNode(OrNode n) throws E, TypeException {
+    public S visitNode(OrNode n) throws E {
         throw new UnimplException();
     }
 
-    public S visitNode(AndNode n) throws E, TypeException {
+    public S visitNode(AndNode n) throws E {
         throw new UnimplException();
     }
 

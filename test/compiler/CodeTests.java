@@ -15,4 +15,33 @@ public class CodeTests {
         assertEquals(3, Integer.parseInt(output));
     }
 
+    @Test
+    void testNot() {
+        var code = "print(!false);";
+        var output = getOutput(CharStreams.fromString(code));
+        assertEquals(1, Integer.parseInt(output));
+
+        code = "print(!true);";
+        output = getOutput(CharStreams.fromString(code));
+        assertEquals(0, Integer.parseInt(output));
+
+        code = "print(!(!true));";
+        output = getOutput(CharStreams.fromString(code));
+        assertEquals(1, Integer.parseInt(output));
+    }
+
+    @Test
+    void testAnd() {
+        var code = "print(true && false);";
+        var output = getOutput(CharStreams.fromString(code));
+        assertEquals(0, Integer.parseInt(output));
+    }
+
+    @Test
+    void testOr() {
+        var code = "print(true || false);";
+        var output = getOutput(CharStreams.fromString(code));
+        assertEquals(1, Integer.parseInt(output));
+    }
+
 }
