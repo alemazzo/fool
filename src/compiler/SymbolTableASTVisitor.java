@@ -23,7 +23,7 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
     }
 
     SymbolTableASTVisitor(boolean debug) {
-        super(debug);
+        super(true, debug);
     } // enables print for debugging
 
     private STentry stLookup(String id) {
@@ -191,7 +191,7 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
     public Void visitNode(DivNode n) throws VoidException {
         throw new UnimplException();
     }
-    
+
     public Void visitNode(GreaterEqualNode n) throws VoidException {
         throw new UnimplException();
     }

@@ -181,9 +181,10 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
     @Override
     public TypeNode visitNode(MinusNode n) throws TypeException {
         if (print) printNode(n);
-        visit(n.left);
-        visit(n.right);
-        return null;
+        if (!(isSubtype(visit(n.left), new IntTypeNode())
+                && isSubtype(visit(n.right), new IntTypeNode())))
+            throw new TypeException("Non integers in minus", n.getLine());
+        return new IntTypeNode();
     }
 
     public TypeNode visitNode(DivNode n) {

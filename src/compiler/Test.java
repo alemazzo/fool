@@ -19,7 +19,7 @@ import java.io.FileWriter;
 public class Test {
     public static void main(String[] args) throws Exception {
 
-        String fileName = "examples/minus.fool";
+        String fileName = "examples/prova.fool";
 
         CharStream chars = CharStreams.fromFileName(fileName);
         FOOLLexer lexer = new FOOLLexer(chars);
@@ -37,12 +37,12 @@ public class Test {
         System.out.println();
 
         System.out.println("Enriching AST via symbol table.");
-        SymbolTableASTVisitor symtableVisitor = new SymbolTableASTVisitor();
+        SymbolTableASTVisitor symtableVisitor = new SymbolTableASTVisitor(true);
         symtableVisitor.visit(ast);
         System.out.println("You had " + symtableVisitor.stErrors + " symbol table errors.\n");
 
         System.out.println("Visualizing Enriched AST.");
-        new PrintEASTVisitor().visit(ast);
+        //new PrintEASTVisitor().visit(ast);
         System.out.println();
 
         System.out.println("Checking Types.");

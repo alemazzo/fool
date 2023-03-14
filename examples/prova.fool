@@ -1,5 +1,5 @@
 let
-  var y:int = 5+2;
+  var y:int = 5-2;
   fun g:bool (b:bool)
     let 
       fun f:bool (n:int, m:int)

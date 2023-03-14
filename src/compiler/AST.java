@@ -260,6 +260,7 @@ public class AST {
     }
 
     public static class MinusNode extends Node {
+
         final Node left;
         final Node right;
 
@@ -275,7 +276,7 @@ public class AST {
     }
 
     // END NEW
-    
+
     public static class CallNode extends Node {
         final String id;
         final List<Node> arglist;

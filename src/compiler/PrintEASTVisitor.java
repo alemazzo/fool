@@ -147,4 +147,41 @@ public class PrintEASTVisitor extends BaseEASTVisitor<Void, VoidException> {
         return null;
     }
 
+
+    public Void visitNode(DivNode n) {
+        //throw new UnimplException();
+        return null;
+    }
+
+    public Void visitNode(MinusNode n) {
+        //throw new UnimplException();
+        return null;
+    }
+
+    public Void visitNode(GreaterEqualNode n) {
+        //throw new UnimplException();
+        return null;
+    }
+
+    public Void visitNode(LessEqualNode n) {
+        //throw new UnimplException();
+        return null;
+    }
+
+    public Void visitNode(NotNode n) {
+        //throw new UnimplException();
+        return null;
+    }
+
+    public Void visitNode(OrNode n) {
+        //throw new UnimplException();
+        return null;
+    }
+
+    public Void visitNode(AndNode n) {
+        //throw new UnimplException();
+        return null;
+    }
+
+
 }
