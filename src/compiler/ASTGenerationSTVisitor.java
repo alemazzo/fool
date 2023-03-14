@@ -226,5 +226,4 @@ public class ASTGenerationSTVisitor extends FOOLBaseVisitor<Node> {
         return n;
     }
 
-
 }
