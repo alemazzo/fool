@@ -189,15 +189,24 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
     }
 
     public Void visitNode(DivNode n) throws VoidException {
-        throw new UnimplException();
+        if (print) printNode(n);
+        visit(n.left);
+        visit(n.right);
+        return null;
     }
 
     public Void visitNode(GreaterEqualNode n) throws VoidException {
-        throw new UnimplException();
+        if (print) printNode(n);
+        visit(n.left);
+        visit(n.right);
+        return null;
     }
 
     public Void visitNode(LessEqualNode n) throws VoidException {
-        throw new UnimplException();
+        if (print) printNode(n);
+        visit(n.left);
+        visit(n.right);
+        return null;
     }
 
     public Void visitNode(NotNode n) throws VoidException {
