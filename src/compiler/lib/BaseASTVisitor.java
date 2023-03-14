@@ -151,11 +151,11 @@ public class BaseASTVisitor<S, E extends Exception> {
         throw new UnimplException();
     }
 
-    public S visitNode(OrNode n) throws E {
+    public S visitNode(OrNode n) throws E, TypeException {
         throw new UnimplException();
     }
 
-    public S visitNode(AndNode n) throws E {
+    public S visitNode(AndNode n) throws E, TypeException {
         throw new UnimplException();
     }
 

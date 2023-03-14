@@ -1,7 +1,6 @@
 package compiler;
 
 import compiler.AST.*;
-import compiler.exc.UnimplException;
 import compiler.exc.VoidException;
 import compiler.lib.BaseASTVisitor;
 import compiler.lib.Node;
@@ -228,6 +227,5 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
         visit(n.right);
         return null;
     }
-
 
 }

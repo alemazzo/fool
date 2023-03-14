@@ -208,19 +208,33 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
         return new BoolTypeNode();
     }
 
-    public TypeNode visitNode(NotNode n) {
-        throw new UnimplException();
+    public TypeNode visitNode(NotNode n) throws TypeException {
+        if (print) printNode(n);
+        if (!(isSubtype(visit(n.exp), new BoolTypeNode()))) {
+            throw new TypeException("Non boolean in not", n.getLine());
+        }
+        return new BoolTypeNode();
     }
 
-    public TypeNode visitNode(OrNode n) {
-        throw new UnimplException();
+    public TypeNode visitNode(OrNode n) throws TypeException {
+        if (print) printNode(n);
+        if (!(isSubtype(visit(n.left), new BoolTypeNode())
+                && isSubtype(visit(n.right), new BoolTypeNode()))) {
+            throw new TypeException("Non booleans in or", n.getLine());
+        }
+        return new BoolTypeNode();
     }
 
-    public TypeNode visitNode(AndNode n) {
-        throw new UnimplException();
+    public TypeNode visitNode(AndNode n) throws TypeException {
+        if (print) printNode(n);
+        if (!(isSubtype(visit(n.left), new BoolTypeNode())
+                && isSubtype(visit(n.right), new BoolTypeNode()))) {
+            throw new TypeException("Non booleans in and", n.getLine());
+        }
+        return new BoolTypeNode();
     }
 
-// STentry (ritorna campo type)
+    // STentry (ritorna campo type)
 
     @Override
     public TypeNode visitSTentry(STentry entry) throws TypeException {
