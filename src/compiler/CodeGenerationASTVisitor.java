@@ -1,7 +1,6 @@
 package compiler;
 
 import compiler.AST.*;
-import compiler.exc.UnimplException;
 import compiler.exc.VoidException;
 import compiler.lib.BaseASTVisitor;
 import compiler.lib.Node;
@@ -220,14 +219,13 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
         return nlJoin(
                 visit(n.left),
                 visit(n.right),
-                "beq " + trueLabel,     //if equal, then true
+                "push 1",
+                "sub",
                 "bleq " + falseLabel,   //if less , then false
-                "b " + trueLabel,       //if greater, then true
+                "push 1",
+                "b " + endLabel,
                 falseLabel + ":",       //false
                 "push 0",
-                "b " + endLabel,
-                trueLabel + ":",        //true
-                "push 1",
                 endLabel + ":"          //end
         );
     }

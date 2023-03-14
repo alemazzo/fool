@@ -44,4 +44,26 @@ public class CodeTests {
         assertEquals(1, Integer.parseInt(output));
     }
 
+    @Test
+    void testDiv() {
+        var code = "print(10 / 2);";
+        var output = getOutput(CharStreams.fromString(code));
+        assertEquals(5, Integer.parseInt(output));
+    }
+
+    @Test
+    void testGreaterEqual() {
+        var code = "print(10 >= 2);";
+        var output = getOutput(CharStreams.fromString(code));
+        assertEquals(1, Integer.parseInt(output));
+    }
+
+    @Test
+    void testLessEqual() {
+        var code = "print(10 <= 2);";
+        var output = getOutput(CharStreams.fromString(code));
+        assertEquals(0, Integer.parseInt(output));
+    }
+
+
 }
