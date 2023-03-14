@@ -187,16 +187,25 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
         return new IntTypeNode();
     }
 
-    public TypeNode visitNode(DivNode n) {
-        throw new UnimplException();
+    public TypeNode visitNode(DivNode n) throws TypeException {
+        if (print) printNode(n);
+        if (!(isSubtype(visit(n.left), new IntTypeNode()) && isSubtype(visit(n.right), new IntTypeNode())))
+            throw new TypeException("Non integers in Div", n.getLine());
+        return new IntTypeNode();
     }
 
-    public TypeNode visitNode(GreaterEqualNode n) {
-        throw new UnimplException();
+    public TypeNode visitNode(GreaterEqualNode n) throws TypeException {
+        if (print) printNode(n);
+        if (!(isSubtype(visit(n.left), new IntTypeNode()) && isSubtype(visit(n.right), new IntTypeNode())))
+            throw new TypeException("Non integers in Gte", n.getLine());
+        return new BoolTypeNode();
     }
 
-    public TypeNode visitNode(LessEqualNode n) {
-        throw new UnimplException();
+    public TypeNode visitNode(LessEqualNode n) throws TypeException {
+        if (print) printNode(n);
+        if (!(isSubtype(visit(n.left), new IntTypeNode()) && isSubtype(visit(n.right), new IntTypeNode())))
+            throw new TypeException("Non integers in Lte", n.getLine());
+        return new BoolTypeNode();
     }
 
     public TypeNode visitNode(NotNode n) {
