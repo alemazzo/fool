@@ -3,6 +3,7 @@ package compiler;
 import compiler.AST.*;
 import compiler.exc.IncomplException;
 import compiler.exc.TypeException;
+import compiler.exc.UnimplException;
 import compiler.lib.BaseEASTVisitor;
 import compiler.lib.Node;
 import compiler.lib.TypeNode;
@@ -175,6 +176,38 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
     public TypeNode visitNode(IntTypeNode n) {
         if (print) printNode(n);
         return null;
+    }
+
+    @Override
+    public TypeNode visitNode(MinusNode n) throws TypeException {
+        if (print) printNode(n);
+        visit(n.left);
+        visit(n.right);
+        return null;
+    }
+
+    public TypeNode visitNode(DivNode n) {
+        throw new UnimplException();
+    }
+
+    public TypeNode visitNode(GreaterEqualNode n) {
+        throw new UnimplException();
+    }
+
+    public TypeNode visitNode(LessEqualNode n) {
+        throw new UnimplException();
+    }
+
+    public TypeNode visitNode(NotNode n) {
+        throw new UnimplException();
+    }
+
+    public TypeNode visitNode(OrNode n) {
+        throw new UnimplException();
+    }
+
+    public TypeNode visitNode(AndNode n) {
+        throw new UnimplException();
     }
 
 // STentry (ritorna campo type)
