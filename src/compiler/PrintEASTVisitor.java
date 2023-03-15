@@ -13,6 +13,15 @@ public class PrintEASTVisitor extends BaseEASTVisitor<Void, VoidException> {
     }
 
     @Override
+    public Void visitSTentry(STentry entry) {
+        printSTentry("nestlev " + entry.nl);
+        printSTentry("type");
+        visit(entry.type);
+        printSTentry("offset " + entry.offset);
+        return null;
+    }
+
+    @Override
     public Void visitNode(ProgLetInNode n) {
         printNode(n);
         for (Node dec : n.decList) visit(dec);
@@ -139,59 +148,53 @@ public class PrintEASTVisitor extends BaseEASTVisitor<Void, VoidException> {
         return null;
     }
 
-    @Override
-    public Void visitSTentry(STentry entry) {
-        printSTentry("nestlev " + entry.nl);
-        printSTentry("type");
-        visit(entry.type);
-        printSTentry("offset " + entry.offset);
-        return null;
-    }
 
+    // ******************
+    // ******************
+    // OPERATOR EXTENSION
+    // ******************
+    // ******************
 
     @Override
     public Void visitNode(DivNode n) {
-        //throw new UnimplException();
-        return null;
+        throw new UnimplException();
     }
 
     @Override
     public Void visitNode(MinusNode n) {
-        //throw new UnimplException();
-        return null;
+        throw new UnimplException();
     }
 
     @Override
     public Void visitNode(GreaterEqualNode n) {
-        //throw new UnimplException();
-        return null;
+        throw new UnimplException();
     }
 
     @Override
     public Void visitNode(LessEqualNode n) {
-        //throw new UnimplException();
-        return null;
+        throw new UnimplException();
     }
 
     @Override
     public Void visitNode(NotNode n) {
-        //throw new UnimplException();
-        return null;
+        throw new UnimplException();
     }
 
     @Override
     public Void visitNode(OrNode n) {
-        //throw new UnimplException();
-        return null;
+        throw new UnimplException();
     }
 
     @Override
     public Void visitNode(AndNode n) {
-        //throw new UnimplException();
-        return null;
+        throw new UnimplException();
     }
 
+    // *************************
+    // *************************
     // OBJECT-ORIENTED EXTENSION
+    // *************************
+    // *************************
 
     @Override
     public Void visitNode(ClassNode n) {

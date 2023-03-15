@@ -185,11 +185,11 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
         return "push " + n.val;
     }
 
-    //
-    //
-    // QUI
-    //
-    //
+    // ******************
+    // ******************
+    // OPERATOR EXTENSION
+    // ******************
+    // ******************
 
     @Override
     public String visitNode(MinusNode n) {
@@ -305,7 +305,11 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
         );
     }
 
+    // *************************
+    // *************************
     // OBJECT-ORIENTED EXTENSION
+    // *************************
+    // *************************
 
     @Override
     public String visitNode(ClassNode n) {

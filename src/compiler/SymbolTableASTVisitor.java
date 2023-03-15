@@ -180,6 +180,12 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
         return null;
     }
 
+    // ******************
+    // ******************
+    // OPERATOR EXTENSION
+    // ******************
+    // ******************
+
     @Override
     public Void visitNode(MinusNode n) {
         if (print) printNode(n);
@@ -235,7 +241,11 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
         return null;
     }
 
+    // *************************
+    // *************************
     // OBJECT-ORIENTED EXTENSION
+    // *************************
+    // *************************
 
     @Override
     public Void visitNode(ClassNode n) {

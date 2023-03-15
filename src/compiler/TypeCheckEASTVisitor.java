@@ -32,6 +32,13 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
         return t;
     }
 
+    // STentry (ritorna campo type)
+
+    @Override
+    public TypeNode visitSTentry(STentry entry) throws TypeException {
+        if (print) printSTentry("type");
+        return ckvisit(entry.type);
+    }
 
     @Override
     public TypeNode visitNode(ProgLetInNode n) throws TypeException {
@@ -178,6 +185,12 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
         return null;
     }
 
+    // ******************
+    // ******************
+    // OPERATOR EXTENSION
+    // ******************
+    // ******************
+
     @Override
     public TypeNode visitNode(MinusNode n) throws TypeException {
         if (print) printNode(n);
@@ -240,15 +253,12 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
         return new BoolTypeNode();
     }
 
-    // STentry (ritorna campo type)
 
-    @Override
-    public TypeNode visitSTentry(STentry entry) throws TypeException {
-        if (print) printSTentry("type");
-        return ckvisit(entry.type);
-    }
-
+    // *************************
+    // *************************
     // OBJECT-ORIENTED EXTENSION
+    // *************************
+    // *************************
 
     // Controllare se bisogna lanciare la TypeException e
     // nel caso aggiungerla alla signature del metodo
