@@ -1,5 +1,7 @@
 package compiler;
 
+import compiler.AST.ProgLetInNode;
+import compiler.AST.ProgNode;
 import compiler.exc.TypeException;
 import compiler.lib.Node;
 import org.antlr.v4.runtime.CharStream;
@@ -28,11 +30,27 @@ public class CodeUtils {
         return visitor.visit(st);
     }
 
+    public static ProgNode getProgNodeFromAST(final CharStream chars) {
+        return (ProgNode) getAST(chars);
+    }
+
+    public static ProgLetInNode getProgLetInNodeFromAST(final CharStream chars) {
+        return (ProgLetInNode) getAST(chars);
+    }
+
     public static Node getEAST(final CharStream chars) {
         final Node ast = getAST(chars);
         SymbolTableASTVisitor symtableVisitor = new SymbolTableASTVisitor(false);
         symtableVisitor.visit(ast);
         return ast;
+    }
+
+    public static ProgNode getProgNodeFromEAST(final CharStream chars) {
+        return (ProgNode) getEAST(chars);
+    }
+
+    public static ProgLetInNode getProgLetInNodeFromEAST(final CharStream chars) {
+        return (ProgLetInNode) getEAST(chars);
     }
 
     public static void checkTypes(final Node east) throws TypeException {

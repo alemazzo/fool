@@ -121,7 +121,6 @@ public class AST {
         }
     }
 
-    // NEW
     public static class EqualNode extends Node {
         final Node left;
         final Node right;
@@ -136,7 +135,6 @@ public class AST {
             return visitor.visitNode(this);
         }
     }
-
 
     public static class IdNode extends Node {
 
