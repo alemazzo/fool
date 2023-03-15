@@ -1,4 +1,4 @@
-package compiler;
+package programs;
 
 import org.junit.jupiter.api.Test;
 
@@ -36,7 +36,7 @@ public class OperationsTest {
         final var result = getOutput(fromString(code));
         assertEquals(6, parseInt(result));
     }
-    
+
     @Test
     void testDiv() {
         final var code = "print(1 / 2);";

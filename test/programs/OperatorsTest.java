@@ -1,4 +1,4 @@
-package compiler;
+package programs;
 
 import org.junit.jupiter.api.Test;
 
@@ -64,7 +64,7 @@ public class OperatorsTest {
         final var result = getOutput(fromString(code));
         assertEquals(0, parseInt(result));
     }
-    
+
     @Test
     void testAndOnTrueAndTrue() {
         final var code = "print(true && true);";
