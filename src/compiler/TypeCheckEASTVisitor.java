@@ -3,6 +3,7 @@ package compiler;
 import compiler.AST.*;
 import compiler.exc.IncomplException;
 import compiler.exc.TypeException;
+import compiler.exc.UnimplException;
 import compiler.lib.BaseEASTVisitor;
 import compiler.lib.Node;
 import compiler.lib.TypeNode;
@@ -239,6 +240,68 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
     public TypeNode visitSTentry(STentry entry) throws TypeException {
         if (print) printSTentry("type");
         return ckvisit(entry.type);
+    }
+
+    // OBJECT-ORIENTED EXTENSION
+
+    // Controllare se bisogna lanciare la TypeException e
+    // nel caso aggiungerla alla signature del metodo
+    public TypeNode visitNode(ClassNode n) {
+        throw new UnimplException();
+    }
+
+    // Controllare se bisogna lanciare la TypeException e
+    // nel caso aggiungerla alla signature del metodo
+    public TypeNode visitNode(FieldNode node) {
+        throw new UnimplException();
+    }
+
+    // Controllare se bisogna lanciare la TypeException e
+    // nel caso aggiungerla alla signature del metodo
+    public TypeNode visitNode(MethodNode n) {
+        throw new UnimplException();
+    }
+
+    // Controllare se bisogna lanciare la TypeException e
+    // nel caso aggiungerla alla signature del metodo
+    public TypeNode visitNode(ClassCallNode node) {
+        throw new UnimplException();
+    }
+
+    // Controllare se bisogna lanciare la TypeException e
+    // nel caso aggiungerla alla signature del metodo
+    public TypeNode visitNode(NewNode n) {
+        throw new UnimplException();
+    }
+
+    // Controllare se bisogna lanciare la TypeException e
+    // nel caso aggiungerla alla signature del metodo
+    public TypeNode visitNode(EmptyNode n) {
+        throw new UnimplException();
+    }
+
+    // Controllare se bisogna lanciare la TypeException e
+    // nel caso aggiungerla alla signature del metodo
+    public TypeNode visitNode(ClassTypeNode n) {
+        throw new UnimplException();
+    }
+
+    // Controllare se bisogna lanciare la TypeException e
+    // nel caso aggiungerla alla signature del metodo
+    public TypeNode visitNode(MethodTypeNode n) {
+        throw new UnimplException();
+    }
+
+    // Controllare se bisogna lanciare la TypeException e
+    // nel caso aggiungerla alla signature del metodo
+    public TypeNode visitNode(RefTypeNode n) {
+        throw new UnimplException();
+    }
+
+    // Controllare se bisogna lanciare la TypeException e
+    // nel caso aggiungerla alla signature del metodo
+    public TypeNode visitNode(EmptyTypeNode n) {
+        throw new UnimplException();
     }
 
 }
