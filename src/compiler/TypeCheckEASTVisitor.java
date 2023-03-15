@@ -3,7 +3,6 @@ package compiler;
 import compiler.AST.*;
 import compiler.exc.IncomplException;
 import compiler.exc.TypeException;
-import compiler.exc.UnimplException;
 import compiler.lib.BaseEASTVisitor;
 import compiler.lib.Node;
 import compiler.lib.TypeNode;
@@ -215,7 +214,7 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
         }
         return new BoolTypeNode();
     }
-
+    
     public TypeNode visitNode(OrNode n) throws TypeException {
         if (print) printNode(n);
         if (!(isSubtype(visit(n.left), new BoolTypeNode())

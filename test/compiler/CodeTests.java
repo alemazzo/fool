@@ -3,7 +3,7 @@ package compiler;
 import org.antlr.v4.runtime.CharStreams;
 import org.junit.jupiter.api.Test;
 
-import static compiler.CodeTester.getOutput;
+import static compiler.CodeUtils.getOutput;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class CodeTests {

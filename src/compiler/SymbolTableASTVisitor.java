@@ -213,7 +213,7 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
         visit(n.exp);
         return null;
     }
-
+    
     public Void visitNode(OrNode n) throws VoidException {
         if (print) printNode(n);
         visit(n.left);

@@ -109,7 +109,7 @@ public class ASTGenerationSTVisitor extends FOOLBaseVisitor<Node> {
             return n;
         }
     }
-
+    
     @Override
     public Node visitAndOr(AndOrContext c) {
         if (print) printVarAndProdName(c);

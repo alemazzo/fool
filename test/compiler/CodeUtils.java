@@ -14,7 +14,7 @@ import svm.SVMParser;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 
-public class CodeTester {
+public class CodeUtils {
 
     public static ParseTree getParseTree(final CharStream chars) {
         FOOLLexer lexer = new FOOLLexer(chars);
@@ -39,7 +39,6 @@ public class CodeTester {
     public static void checkTypes(final Node east) throws TypeException {
         TypeCheckEASTVisitor typeCheckVisitor = new TypeCheckEASTVisitor();
         TypeNode mainType = typeCheckVisitor.visit(east);
-        System.out.print("Type of main program expression is: ");
         new PrintEASTVisitor().visit(mainType);
     }
 
