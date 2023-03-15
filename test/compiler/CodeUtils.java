@@ -2,7 +2,6 @@ package compiler;
 
 import compiler.exc.TypeException;
 import compiler.lib.Node;
-import compiler.lib.TypeNode;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -31,15 +30,14 @@ public class CodeUtils {
 
     public static Node getEAST(final CharStream chars) {
         final Node ast = getAST(chars);
-        SymbolTableASTVisitor symtableVisitor = new SymbolTableASTVisitor(true);
+        SymbolTableASTVisitor symtableVisitor = new SymbolTableASTVisitor(false);
         symtableVisitor.visit(ast);
         return ast;
     }
 
     public static void checkTypes(final Node east) throws TypeException {
         TypeCheckEASTVisitor typeCheckVisitor = new TypeCheckEASTVisitor();
-        TypeNode mainType = typeCheckVisitor.visit(east);
-        new PrintEASTVisitor().visit(mainType);
+        typeCheckVisitor.visit(east);
     }
 
     public static String getAssembly(final CharStream chars) {
