@@ -2,6 +2,7 @@ package compiler;
 
 import compiler.AST.*;
 import compiler.FOOLParser.*;
+import compiler.exc.UnimplException;
 import compiler.lib.DecNode;
 import compiler.lib.Node;
 import compiler.lib.TypeNode;
@@ -238,10 +239,32 @@ public class ASTGenerationSTVisitor extends FOOLBaseVisitor<Node> {
 
     @Override
     public Node visitCldec(CldecContext c) {
-        if (print) printVarAndProdName(c);
-        Node n = new ClassNode();
-        n.setLine(c.CLASS().getSymbol().getLine());
-        return n;
+        throw new UnimplException();
+    }
+
+    @Override
+    public Node visitMethdec(MethdecContext c) {
+        throw new UnimplException();
+    }
+
+    @Override
+    public Node visitNew(NewContext c) {
+        throw new UnimplException();
+    }
+
+    @Override
+    public Node visitDotCall(DotCallContext c) {
+        throw new UnimplException();
+    }
+
+    @Override
+    public Node visitIdType(IdTypeContext c) {
+        throw new UnimplException();
+    }
+
+    @Override
+    public Node visitNull(NullContext c) {
+        throw new UnimplException();
     }
 
 }
