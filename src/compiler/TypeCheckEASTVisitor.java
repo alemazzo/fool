@@ -155,16 +155,6 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
         return new IntTypeNode();
     }
 
-// gestione tipi incompleti	(se lo sono lancia eccezione)
-
-    @Override
-    public TypeNode visitNode(ArrowTypeNode n) throws TypeException {
-        if (print) printNode(n);
-        for (Node par : n.parlist) visit(par);
-        visit(n.ret, "->"); //marks return type
-        return null;
-    }
-
     @Override
     public TypeNode visitNode(BoolTypeNode n) {
         if (print) printNode(n);
@@ -174,6 +164,16 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
     @Override
     public TypeNode visitNode(IntTypeNode n) {
         if (print) printNode(n);
+        return null;
+    }
+
+    // gestione tipi incompleti	(se lo sono lancia eccezione)
+
+    @Override
+    public TypeNode visitNode(ArrowTypeNode n) throws TypeException {
+        if (print) printNode(n);
+        for (Node par : n.parlist) visit(par);
+        visit(n.ret, "->"); //marks return type
         return null;
     }
 
@@ -214,7 +214,7 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
         }
         return new BoolTypeNode();
     }
-    
+
     public TypeNode visitNode(OrNode n) throws TypeException {
         if (print) printNode(n);
         if (!(isSubtype(visit(n.left), new BoolTypeNode())
