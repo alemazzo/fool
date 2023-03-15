@@ -187,6 +187,7 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
         return new IntTypeNode();
     }
 
+    @Override
     public TypeNode visitNode(DivNode n) throws TypeException {
         if (print) printNode(n);
         if (!(isSubtype(visit(n.left), new IntTypeNode()) && isSubtype(visit(n.right), new IntTypeNode())))
@@ -194,6 +195,7 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
         return new IntTypeNode();
     }
 
+    @Override
     public TypeNode visitNode(GreaterEqualNode n) throws TypeException {
         if (print) printNode(n);
         if (!(isSubtype(visit(n.left), new IntTypeNode()) && isSubtype(visit(n.right), new IntTypeNode())))
@@ -201,6 +203,7 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
         return new BoolTypeNode();
     }
 
+    @Override
     public TypeNode visitNode(LessEqualNode n) throws TypeException {
         if (print) printNode(n);
         if (!(isSubtype(visit(n.left), new IntTypeNode()) && isSubtype(visit(n.right), new IntTypeNode())))
@@ -208,6 +211,7 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
         return new BoolTypeNode();
     }
 
+    @Override
     public TypeNode visitNode(NotNode n) throws TypeException {
         if (print) printNode(n);
         if (!(isSubtype(visit(n.exp), new BoolTypeNode()))) {
@@ -216,6 +220,7 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
         return new BoolTypeNode();
     }
 
+    @Override
     public TypeNode visitNode(OrNode n) throws TypeException {
         if (print) printNode(n);
         if (!(isSubtype(visit(n.left), new BoolTypeNode())
@@ -225,6 +230,7 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
         return new BoolTypeNode();
     }
 
+    @Override
     public TypeNode visitNode(AndNode n) throws TypeException {
         if (print) printNode(n);
         if (!(isSubtype(visit(n.left), new BoolTypeNode())
@@ -246,60 +252,70 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
 
     // Controllare se bisogna lanciare la TypeException e
     // nel caso aggiungerla alla signature del metodo
+    @Override
     public TypeNode visitNode(ClassNode n) {
         throw new UnimplException();
     }
 
     // Controllare se bisogna lanciare la TypeException e
     // nel caso aggiungerla alla signature del metodo
+    @Override
     public TypeNode visitNode(FieldNode node) {
         throw new UnimplException();
     }
 
     // Controllare se bisogna lanciare la TypeException e
     // nel caso aggiungerla alla signature del metodo
+    @Override
     public TypeNode visitNode(MethodNode n) {
         throw new UnimplException();
     }
 
     // Controllare se bisogna lanciare la TypeException e
     // nel caso aggiungerla alla signature del metodo
+    @Override
     public TypeNode visitNode(ClassCallNode node) {
         throw new UnimplException();
     }
 
     // Controllare se bisogna lanciare la TypeException e
     // nel caso aggiungerla alla signature del metodo
+    @Override
     public TypeNode visitNode(NewNode n) {
         throw new UnimplException();
     }
 
     // Controllare se bisogna lanciare la TypeException e
     // nel caso aggiungerla alla signature del metodo
+    @Override
     public TypeNode visitNode(EmptyNode n) {
         throw new UnimplException();
     }
 
     // Controllare se bisogna lanciare la TypeException e
     // nel caso aggiungerla alla signature del metodo
+    @Override
     public TypeNode visitNode(ClassTypeNode n) {
         throw new UnimplException();
     }
 
     // Controllare se bisogna lanciare la TypeException e
     // nel caso aggiungerla alla signature del metodo
+    @Override
     public TypeNode visitNode(MethodTypeNode n) {
         throw new UnimplException();
     }
 
     // Controllare se bisogna lanciare la TypeException e
     // nel caso aggiungerla alla signature del metodo
+    @Override
     public TypeNode visitNode(RefTypeNode n) {
         throw new UnimplException();
     }
 
     // Controllare se bisogna lanciare la TypeException e
     // nel caso aggiungerla alla signature del metodo
+    @Override
     public TypeNode visitNode(EmptyTypeNode n) {
         throw new UnimplException();
     }

@@ -1,6 +1,7 @@
 package compiler;
 
 import compiler.AST.*;
+import compiler.exc.UnimplException;
 import compiler.exc.VoidException;
 import compiler.lib.BaseEASTVisitor;
 import compiler.lib.Node;
@@ -148,39 +149,98 @@ public class PrintEASTVisitor extends BaseEASTVisitor<Void, VoidException> {
     }
 
 
+    @Override
     public Void visitNode(DivNode n) {
         //throw new UnimplException();
         return null;
     }
 
+    @Override
     public Void visitNode(MinusNode n) {
         //throw new UnimplException();
         return null;
     }
-    
+
+    @Override
     public Void visitNode(GreaterEqualNode n) {
         //throw new UnimplException();
         return null;
     }
 
+    @Override
     public Void visitNode(LessEqualNode n) {
         //throw new UnimplException();
         return null;
     }
 
+    @Override
     public Void visitNode(NotNode n) {
         //throw new UnimplException();
         return null;
     }
 
+    @Override
     public Void visitNode(OrNode n) {
         //throw new UnimplException();
         return null;
     }
 
+    @Override
     public Void visitNode(AndNode n) {
         //throw new UnimplException();
         return null;
+    }
+
+    // OBJECT-ORIENTED EXTENSION
+
+    @Override
+    public Void visitNode(ClassNode n) {
+        throw new UnimplException();
+    }
+
+    @Override
+    public Void visitNode(FieldNode node) {
+        throw new UnimplException();
+    }
+
+    @Override
+    public Void visitNode(MethodNode n) {
+        throw new UnimplException();
+    }
+
+    @Override
+    public Void visitNode(ClassCallNode node) {
+        throw new UnimplException();
+    }
+
+    @Override
+    public Void visitNode(NewNode n) {
+        throw new UnimplException();
+    }
+
+    @Override
+    public Void visitNode(EmptyNode n) {
+        throw new UnimplException();
+    }
+
+    @Override
+    public Void visitNode(ClassTypeNode n) {
+        throw new UnimplException();
+    }
+
+    @Override
+    public Void visitNode(MethodTypeNode n) {
+        throw new UnimplException();
+    }
+
+    @Override
+    public Void visitNode(RefTypeNode n) {
+        throw new UnimplException();
+    }
+
+    @Override
+    public Void visitNode(EmptyTypeNode n) {
+        throw new UnimplException();
     }
 
 

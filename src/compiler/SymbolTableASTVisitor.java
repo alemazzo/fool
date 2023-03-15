@@ -188,6 +188,7 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
         return null;
     }
 
+    @Override
     public Void visitNode(DivNode n) {
         if (print) printNode(n);
         visit(n.left);
@@ -195,6 +196,7 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
         return null;
     }
 
+    @Override
     public Void visitNode(GreaterEqualNode n) {
         if (print) printNode(n);
         visit(n.left);
@@ -202,6 +204,7 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
         return null;
     }
 
+    @Override
     public Void visitNode(LessEqualNode n) {
         if (print) printNode(n);
         visit(n.left);
@@ -209,12 +212,14 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
         return null;
     }
 
+    @Override
     public Void visitNode(NotNode n) {
         if (print) printNode(n);
         visit(n.exp);
         return null;
     }
 
+    @Override
     public Void visitNode(OrNode n) {
         if (print) printNode(n);
         visit(n.left);
@@ -222,6 +227,7 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
         return null;
     }
 
+    @Override
     public Void visitNode(AndNode n) {
         if (print) printNode(n);
         visit(n.left);
@@ -231,44 +237,54 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
 
     // OBJECT-ORIENTED EXTENSION
 
+    @Override
     public Void visitNode(ClassNode n) {
         throw new UnimplException();
     }
 
+    @Override
     public Void visitNode(FieldNode node) {
         throw new UnimplException();
     }
 
+    @Override
     public Void visitNode(MethodNode n) {
         throw new UnimplException();
     }
 
+    @Override
     public Void visitNode(ClassCallNode node) {
         throw new UnimplException();
     }
 
+    @Override
     public Void visitNode(NewNode n) {
         throw new UnimplException();
     }
 
+    @Override
     public Void visitNode(EmptyNode n) {
         throw new UnimplException();
     }
 
+    @Override
     public Void visitNode(ClassTypeNode n) {
         throw new UnimplException();
     }
 
+    @Override
     public Void visitNode(MethodTypeNode n) {
         throw new UnimplException();
     }
 
+    @Override
     public Void visitNode(RefTypeNode n) {
         throw new UnimplException();
     }
 
+    @Override
     public Void visitNode(EmptyTypeNode n) {
         throw new UnimplException();
     }
-    
+
 }
