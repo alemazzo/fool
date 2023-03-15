@@ -1,6 +1,7 @@
 package compiler;
 
 import compiler.AST.*;
+import compiler.exc.UnimplException;
 import compiler.exc.VoidException;
 import compiler.lib.BaseASTVisitor;
 import compiler.lib.Node;
@@ -209,7 +210,7 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
                 "div"
         );
     }
-    
+
     @Override
     public String visitNode(GreaterEqualNode n) {
         if (print) printNode(n);
@@ -303,4 +304,47 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
                 endLabel + ":"
         );
     }
+
+    // OBJECT-ORIENTED EXTENSION
+
+    public String visitNode(ClassNode n) {
+        throw new UnimplException();
+    }
+
+    public String visitNode(FieldNode node) {
+        throw new UnimplException();
+    }
+
+    public String visitNode(MethodNode n) {
+        throw new UnimplException();
+    }
+
+    public String visitNode(ClassCallNode node) {
+        throw new UnimplException();
+    }
+
+    public String visitNode(NewNode n) {
+        throw new UnimplException();
+    }
+
+    public String visitNode(EmptyNode n) {
+        throw new UnimplException();
+    }
+
+    public String visitNode(ClassTypeNode n) {
+        throw new UnimplException();
+    }
+
+    public String visitNode(MethodTypeNode n) {
+        throw new UnimplException();
+    }
+
+    public String visitNode(RefTypeNode n) {
+        throw new UnimplException();
+    }
+
+    public String visitNode(EmptyTypeNode n) {
+        throw new UnimplException();
+    }
+    
 }
