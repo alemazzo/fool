@@ -313,51 +313,61 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
 
     @Override
     public String visitNode(ClassNode n) {
+        if (print) printNode(n);
         throw new UnimplException();
     }
 
     @Override
     public String visitNode(FieldNode node) {
+        if (print) printNode(node);
         throw new UnimplException();
     }
 
     @Override
     public String visitNode(MethodNode n) {
+        if (print) printNode(n);
         throw new UnimplException();
     }
 
     @Override
     public String visitNode(ClassCallNode node) {
+        if (print) printNode(node);
         throw new UnimplException();
     }
 
     @Override
     public String visitNode(NewNode n) {
+        if (print) printNode(n);
         throw new UnimplException();
     }
 
     @Override
     public String visitNode(EmptyNode n) {
+        if (print) printNode(n);
         throw new UnimplException();
     }
 
     @Override
     public String visitNode(ClassTypeNode n) {
+        if (print) printNode(n);
         throw new UnimplException();
     }
 
     @Override
     public String visitNode(MethodTypeNode n) {
+        if (print) printNode(n);
         throw new UnimplException();
     }
 
     @Override
     public String visitNode(RefTypeNode n) {
+        if (print) printNode(n);
         throw new UnimplException();
     }
 
     @Override
     public String visitNode(EmptyTypeNode n) {
+        if (print) printNode(n);
         throw new UnimplException();
     }
 

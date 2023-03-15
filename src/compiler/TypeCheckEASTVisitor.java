@@ -264,6 +264,7 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
     // nel caso aggiungerla alla signature del metodo
     @Override
     public TypeNode visitNode(ClassNode n) {
+        if (print) printNode(n);
         throw new UnimplException();
     }
 
@@ -271,6 +272,7 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
     // nel caso aggiungerla alla signature del metodo
     @Override
     public TypeNode visitNode(FieldNode node) {
+        if (print) printNode(node);
         throw new UnimplException();
     }
 
@@ -278,6 +280,7 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
     // nel caso aggiungerla alla signature del metodo
     @Override
     public TypeNode visitNode(MethodNode n) {
+        if (print) printNode(n);
         throw new UnimplException();
     }
 
@@ -285,6 +288,7 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
     // nel caso aggiungerla alla signature del metodo
     @Override
     public TypeNode visitNode(ClassCallNode node) {
+        if (print) printNode(node);
         throw new UnimplException();
     }
 
@@ -292,6 +296,7 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
     // nel caso aggiungerla alla signature del metodo
     @Override
     public TypeNode visitNode(NewNode n) {
+        if (print) printNode(n);
         throw new UnimplException();
     }
 
@@ -299,6 +304,7 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
     // nel caso aggiungerla alla signature del metodo
     @Override
     public TypeNode visitNode(EmptyNode n) {
+        if (print) printNode(n);
         throw new UnimplException();
     }
 
@@ -306,6 +312,7 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
     // nel caso aggiungerla alla signature del metodo
     @Override
     public TypeNode visitNode(ClassTypeNode n) {
+        if (print) printNode(n);
         throw new UnimplException();
     }
 
@@ -313,6 +320,7 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
     // nel caso aggiungerla alla signature del metodo
     @Override
     public TypeNode visitNode(MethodTypeNode n) {
+        if (print) printNode(n);
         throw new UnimplException();
     }
 
@@ -320,6 +328,7 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
     // nel caso aggiungerla alla signature del metodo
     @Override
     public TypeNode visitNode(RefTypeNode n) {
+        if (print) printNode(n);
         throw new UnimplException();
     }
 
@@ -327,6 +336,7 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
     // nel caso aggiungerla alla signature del metodo
     @Override
     public TypeNode visitNode(EmptyTypeNode n) {
+        if (print) printNode(n);
         throw new UnimplException();
     }
 

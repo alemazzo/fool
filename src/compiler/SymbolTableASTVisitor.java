@@ -249,51 +249,61 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
 
     @Override
     public Void visitNode(ClassNode n) {
+        if (print) printNode(n);
         throw new UnimplException();
     }
 
     @Override
     public Void visitNode(FieldNode node) {
+        if (print) printNode(node);
         throw new UnimplException();
     }
 
     @Override
     public Void visitNode(MethodNode n) {
+        if (print) printNode(n);
         throw new UnimplException();
     }
 
     @Override
     public Void visitNode(ClassCallNode node) {
+        if (print) printNode(node);
         throw new UnimplException();
     }
 
     @Override
     public Void visitNode(NewNode n) {
+        if (print) printNode(n);
         throw new UnimplException();
     }
 
     @Override
     public Void visitNode(EmptyNode n) {
+        if (print) printNode(n);
         throw new UnimplException();
     }
 
     @Override
     public Void visitNode(ClassTypeNode n) {
+        if (print) printNode(n);
         throw new UnimplException();
     }
 
     @Override
     public Void visitNode(MethodTypeNode n) {
+        if (print) printNode(n);
         throw new UnimplException();
     }
 
     @Override
     public Void visitNode(RefTypeNode n) {
+        if (print) printNode(n);
         throw new UnimplException();
     }
 
     @Override
     public Void visitNode(EmptyTypeNode n) {
+        if (print) printNode(n);
         throw new UnimplException();
     }
 

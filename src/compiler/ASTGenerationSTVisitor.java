@@ -240,7 +240,7 @@ public class ASTGenerationSTVisitor extends FOOLBaseVisitor<Node> {
         n.setLine(c.NOT().getSymbol().getLine());
         return n;
     }
-    
+
     // *************************
     // *************************
     // OBJECT-ORIENTED EXTENSION
@@ -249,31 +249,37 @@ public class ASTGenerationSTVisitor extends FOOLBaseVisitor<Node> {
 
     @Override
     public Node visitCldec(CldecContext c) {
+        if (print) printVarAndProdName(c);
         throw new UnimplException();
     }
 
     @Override
     public Node visitMethdec(MethdecContext c) {
+        if (print) printVarAndProdName(c);
         throw new UnimplException();
     }
 
     @Override
     public Node visitNew(NewContext c) {
+        if (print) printVarAndProdName(c);
         throw new UnimplException();
     }
 
     @Override
     public Node visitDotCall(DotCallContext c) {
+        if (print) printVarAndProdName(c);
         throw new UnimplException();
     }
 
     @Override
     public Node visitIdType(IdTypeContext c) {
+        if (print) printVarAndProdName(c);
         throw new UnimplException();
     }
 
     @Override
     public Node visitNull(NullContext c) {
+        if (print) printVarAndProdName(c);
         throw new UnimplException();
     }
 
