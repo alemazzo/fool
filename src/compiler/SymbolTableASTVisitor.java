@@ -1,6 +1,7 @@
 package compiler;
 
 import compiler.AST.*;
+import compiler.exc.UnimplException;
 import compiler.exc.VoidException;
 import compiler.lib.BaseASTVisitor;
 import compiler.lib.Node;
@@ -187,45 +188,51 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
         return null;
     }
 
-    public Void visitNode(DivNode n) throws VoidException {
+    public Void visitNode(DivNode n) {
         if (print) printNode(n);
         visit(n.left);
         visit(n.right);
         return null;
     }
 
-    public Void visitNode(GreaterEqualNode n) throws VoidException {
+    public Void visitNode(GreaterEqualNode n) {
         if (print) printNode(n);
         visit(n.left);
         visit(n.right);
         return null;
     }
 
-    public Void visitNode(LessEqualNode n) throws VoidException {
+    public Void visitNode(LessEqualNode n) {
         if (print) printNode(n);
         visit(n.left);
         visit(n.right);
         return null;
     }
 
-    public Void visitNode(NotNode n) throws VoidException {
+    public Void visitNode(NotNode n) {
         if (print) printNode(n);
         visit(n.exp);
         return null;
     }
+
+    public Void visitNode(OrNode n) {
+        if (print) printNode(n);
+        visit(n.left);
+        visit(n.right);
+        return null;
+    }
+
+    public Void visitNode(AndNode n) {
+        if (print) printNode(n);
+        visit(n.left);
+        visit(n.right);
+        return null;
+    }
+
+    // OBJECT-ORIENTED EXTENSION
+
+    public Void visitNode(ClassNode n) {
+        throw new UnimplException();
+    }
     
-    public Void visitNode(OrNode n) throws VoidException {
-        if (print) printNode(n);
-        visit(n.left);
-        visit(n.right);
-        return null;
-    }
-
-    public Void visitNode(AndNode n) throws VoidException {
-        if (print) printNode(n);
-        visit(n.left);
-        visit(n.right);
-        return null;
-    }
-
 }

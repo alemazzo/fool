@@ -109,7 +109,7 @@ public class ASTGenerationSTVisitor extends FOOLBaseVisitor<Node> {
             return n;
         }
     }
-    
+
     @Override
     public Node visitAndOr(AndOrContext c) {
         if (print) printVarAndProdName(c);
@@ -231,6 +231,16 @@ public class ASTGenerationSTVisitor extends FOOLBaseVisitor<Node> {
         for (ExpContext arg : c.exp()) arglist.add(visit(arg));
         Node n = new CallNode(c.ID().getText(), arglist);
         n.setLine(c.ID().getSymbol().getLine());
+        return n;
+    }
+
+    // OBJECT-ORIENTED EXTENSION
+
+    @Override
+    public Node visitCldec(CldecContext c) {
+        if (print) printVarAndProdName(c);
+        Node n = new ClassNode();
+        n.setLine(c.CLASS().getSymbol().getLine());
         return n;
     }
 
