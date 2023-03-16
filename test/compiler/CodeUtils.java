@@ -5,7 +5,6 @@ import compiler.AST.ProgNode;
 import compiler.exc.TypeException;
 import compiler.lib.Node;
 import org.antlr.v4.runtime.CharStream;
-import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 import svm.ExecuteVM;
@@ -14,6 +13,8 @@ import svm.SVMParser;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+
+import static org.antlr.v4.runtime.CharStreams.fromString;
 
 public class CodeUtils {
 
@@ -70,27 +71,24 @@ public class CodeUtils {
 
     public static int[] getSVMCode(final CharStream chars) {
         final String code = getAssembly(chars);
-
-        CharStream charsASM = CharStreams.fromString(code);
-        SVMLexer lexerASM = new SVMLexer(charsASM);
-        CommonTokenStream tokensASM = new CommonTokenStream(lexerASM);
-        SVMParser parserASM = new SVMParser(tokensASM);
-
+        final SVMLexer lexerASM = new SVMLexer(fromString(code));
+        final CommonTokenStream tokensASM = new CommonTokenStream(lexerASM);
+        final SVMParser parserASM = new SVMParser(tokensASM);
         parserASM.assembly();
         return parserASM.code;
     }
 
 
     public static String getOutput(final CharStream chars) {
-
         final int[] code = getSVMCode(chars);
+        final ExecuteVM vm = new ExecuteVM(code);
 
-        ExecuteVM vm = new ExecuteVM(code);
+        final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        final PrintStream ps = new PrintStream(outputStream);
 
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        PrintStream ps = new PrintStream(baos);
         // IMPORTANT: Save the old System.out!
-        PrintStream old = System.out;
+        final PrintStream old = System.out;
+
         // Tell Java to use your special stream
         System.setOut(ps);
         vm.cpu();
@@ -99,7 +97,7 @@ public class CodeUtils {
         System.setOut(old);
 
         // Remove the last newline
-        String output = baos.toString();
+        final String output = outputStream.toString();
         return output.substring(0, output.length() - 1);
     }
 
