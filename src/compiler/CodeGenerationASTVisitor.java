@@ -11,20 +11,23 @@ import static compiler.lib.FOOLlib.*;
 public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidException> {
 
     CodeGenerationASTVisitor() {
+        super(false);
     }
 
     CodeGenerationASTVisitor(boolean debug) {
         super(false, debug);
-    } //enables print for debugging
+    }
 
     @Override
     public String visitNode(ProgLetInNode n) {
         if (print) printNode(n);
-        String declCode = null;
-        for (Node dec : n.decList) declCode = nlJoin(declCode, visit(dec));
+        String declarationsCode = null;
+        for (Node declaration : n.decList) {
+            declarationsCode = nlJoin(declarationsCode, visit(declaration));
+        }
         return nlJoin(
                 "push 0",
-                declCode, // generate code for declarations (allocation)
+                declarationsCode, // generate code for declarations (allocation)
                 visit(n.exp),
                 "halt",
                 getCode()
@@ -43,32 +46,34 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
     @Override
     public String visitNode(FunNode n) {
         if (print) printNode(n, n.id);
-        String declCode = null, popDecl = null, popParl = null;
-        for (Node dec : n.declist) {
-            declCode = nlJoin(declCode, visit(dec));
-            popDecl = nlJoin(popDecl, "pop");
+        String declarationsCode = null, popDeclarationsCode = null, popParametersCode = null;
+        for (Node declaration : n.declist) {
+            declarationsCode = nlJoin(declarationsCode, visit(declaration));
+            popDeclarationsCode = nlJoin(popDeclarationsCode, "pop");
         }
-        for (int i = 0; i < n.parlist.size(); i++) popParl = nlJoin(popParl, "pop");
-        String funl = freshFunLabel();
+        for (int i = 0; i < n.parlist.size(); i++) {
+            popParametersCode = nlJoin(popParametersCode, "pop");
+        }
+        final String funLabel = freshFunLabel();
         putCode(
                 nlJoin(
-                        funl + ":",
+                        funLabel + ":",
                         "cfp", // set $fp to $sp value
                         "lra", // load $ra value
-                        declCode, // generate code for local declarations (they use the new $fp!!!)
+                        declarationsCode, // generate code for local declarations (they use the new $fp!!!)
                         visit(n.exp), // generate code for function body expression
                         "stm", // set $tm to popped value (function result)
-                        popDecl, // remove local declarations from stack
+                        popDeclarationsCode, // remove local declarations from stack
                         "sra", // set $ra to popped value
                         "pop", // remove Access Link from stack
-                        popParl, // remove parameters from stack
+                        popParametersCode, // remove parameters from stack
                         "sfp", // set $fp to popped value (Control Link)
                         "ltm", // load $tm value (function result)
                         "lra", // load $ra value
                         "js"  // jump to to popped address
                 )
         );
-        return "push " + funl;
+        return "push " + funLabel;
     }
 
     @Override
@@ -89,34 +94,34 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
     @Override
     public String visitNode(IfNode n) {
         if (print) printNode(n);
-        String l1 = freshLabel();
-        String l2 = freshLabel();
+        String thenLabel = freshLabel();
+        String endLabel = freshLabel();
         return nlJoin(
                 visit(n.cond),
                 "push 1",
-                "beq " + l1,
+                "beq " + thenLabel,
                 visit(n.el),
-                "b " + l2,
-                l1 + ":",
+                "b " + endLabel,
+                thenLabel + ":",
                 visit(n.th),
-                l2 + ":"
+                endLabel + ":"
         );
     }
 
     @Override
     public String visitNode(EqualNode n) {
         if (print) printNode(n);
-        String l1 = freshLabel();
-        String l2 = freshLabel();
+        String trueLabel = freshLabel();
+        String endLabel = freshLabel();
         return nlJoin(
                 visit(n.left),
                 visit(n.right),
-                "beq " + l1,
+                "beq " + trueLabel,
                 "push 0",
-                "b " + l2,
-                l1 + ":",
+                "b " + endLabel,
+                trueLabel + ":",
                 "push 1",
-                l2 + ":"
+                endLabel + ":"
         );
     }
 
@@ -143,13 +148,17 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
     @Override
     public String visitNode(CallNode n) {
         if (print) printNode(n, n.id);
-        String argCode = null, getAR = null;
-        for (int i = n.arglist.size() - 1; i >= 0; i--) argCode = nlJoin(argCode, visit(n.arglist.get(i)));
-        for (int i = 0; i < n.nl - n.entry.nl; i++) getAR = nlJoin(getAR, "lw");
+        String argumentsCode = null, getARCode = null;
+        for (int i = n.arglist.size() - 1; i >= 0; i--) {
+            argumentsCode = nlJoin(argumentsCode, visit(n.arglist.get(i)));
+        }
+        for (int i = 0; i < n.nl - n.entry.nl; i++) {
+            getARCode = nlJoin(getARCode, "lw");
+        }
         return nlJoin(
                 "lfp", // load Control Link (pointer to frame of function "id" caller)
-                argCode, // generate code for argument expressions in reversed order
-                "lfp", getAR, // retrieve address of frame containing "id" declaration
+                argumentsCode, // generate code for argument expressions in reversed order
+                "lfp", getARCode, // retrieve address of frame containing "id" declaration
                 // by following the static chain (of Access Links)
                 "stm", // set $tm to popped value (with the aim of duplicating top of stack)
                 "ltm", // load Access Link (pointer to frame of function "id" declaration)
@@ -163,10 +172,12 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
     @Override
     public String visitNode(IdNode n) {
         if (print) printNode(n, n.id);
-        String getAR = null;
-        for (int i = 0; i < n.nl - n.entry.nl; i++) getAR = nlJoin(getAR, "lw");
+        String getARCode = null;
+        for (int i = 0; i < n.nl - n.entry.nl; i++) {
+            getARCode = nlJoin(getARCode, "lw");
+        }
         return nlJoin(
-                "lfp", getAR, // retrieve address of frame containing "id" declaration
+                "lfp", getARCode, // retrieve address of frame containing "id" declaration
                 // by following the static chain (of Access Links)
                 "push " + n.entry.offset, "add", // compute address of "id" declaration
                 "lw" // load value of "id" variable
@@ -216,7 +227,6 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
         if (print) printNode(n);
         final String falseLabel = freshLabel();
         final String endLabel = freshLabel();
-        final String trueLabel = freshLabel();
         return nlJoin(
                 visit(n.left),
                 visit(n.right),
@@ -251,17 +261,17 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
     @Override
     public String visitNode(NotNode n) {
         if (print) printNode(n);
-        final String l1 = freshLabel();
-        final String l2 = freshLabel();
+        final String itWasFalseLabel = freshLabel();
+        final String endLabel = freshLabel();
         return nlJoin(
                 visit(n.exp),
                 "push 0",
-                "beq " + l1,
+                "beq " + itWasFalseLabel,
                 "push 0",
-                "b " + l2,
-                l1 + ":",
+                "b " + endLabel,
+                itWasFalseLabel + ":",
                 "push 1",
-                l2 + ":"
+                endLabel + ":"
         );
     }
 
