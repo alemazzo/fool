@@ -295,6 +295,7 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
         }
 
         for (final FieldNode field : node.fields) {
+            // Check if the field name is already declared
             if (visitedClassAttributes.contains(field.fieldId)) {
                 System.out.println("Class attribute " + field.fieldId + " at line " + field.getLine() + " already declared");
                 stErrors++;
@@ -332,6 +333,7 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
         }
 
         for (final MethodNode method : node.methods) {
+            // Check if the method name is already declared
             if (visitedClassAttributes.contains(method.methodId)) {
                 System.out.println("Class method " + method.methodId + " at line " + method.getLine() + " already declared");
                 stErrors++;
