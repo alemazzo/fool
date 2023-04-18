@@ -458,9 +458,13 @@ public class AST {
 
     public static class ClassCallNode extends Node {
 
-        private final String objectId;
-        private final String methodId;
-        private final List<Node> args;
+        final String objectId;
+        final String methodId;
+        final List<Node> args;
+
+        int nestingLevel = 0;
+        STentry entry;
+        STentry methodEntry;
 
         public ClassCallNode(String objectId, String methodId, List<Node> args) {
             this.objectId = objectId;
@@ -477,8 +481,10 @@ public class AST {
 
     public static class NewNode extends Node {
 
-        private final String classId;
-        private final List<Node> args;
+        final String classId;
+        final List<Node> args;
+
+        STentry entry;
 
         public NewNode(String classId, List<Node> args) {
             this.classId = classId;

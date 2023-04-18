@@ -1,7 +1,6 @@
 package compiler;
 
 import compiler.AST.*;
-import compiler.exc.UnimplException;
 import compiler.exc.VoidException;
 import compiler.lib.BaseASTVisitor;
 import compiler.lib.Node;
@@ -355,21 +354,90 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
     }
 
     @Override
-    public Void visitNode(MethodNode n) {
-        if (print) printNode(n);
-        throw new UnimplException();
+    public Void visitNode(MethodNode node) {
+        if (print) printNode(node);
+        final Map<String, STentry> currentTable = symbolTable.get(nestingLevel);
+        final List<TypeNode> params = node.params.stream()
+                .map(ParNode::getType)
+                .toList();
+        final boolean isOverriding = currentTable.containsKey(node.methodId);
+        final TypeNode methodType = new MethodTypeNode(new ArrowTypeNode(params, node.returnType));
+        STentry entry = new STentry(nestingLevel, methodType, declarationOffset++);
+        if (isOverriding) {
+            final var overriddenMethodEntry = currentTable.get(node.methodId);
+            final boolean isOverridingAMethod = overriddenMethodEntry != null && overriddenMethodEntry.type instanceof MethodTypeNode;
+            if (isOverridingAMethod) {
+                entry = new STentry(nestingLevel, methodType, overriddenMethodEntry.offset);
+                declarationOffset--;
+            } else {
+                System.out.println("Cannot override a class attribute with a method: " + node.methodId);
+                stErrors++;
+            }
+        }
+
+        node.offset = entry.offset;
+        currentTable.put(node.methodId, entry);
+
+        // Create a new table for the method.
+        nestingLevel++;
+        final Map<String, STentry> methodTable = new HashMap<>();
+        symbolTable.add(methodTable);
+
+        // Set the declaration offset
+        int prevDeclarationOffset = declarationOffset;
+        declarationOffset = -2;
+        int parameterOffset = 1;
+
+        for (ParNode parameter : node.params) {
+            final STentry parameterEntry = new STentry(nestingLevel, parameter.getType(), parameterOffset++);
+            if (methodTable.put(parameter.id, parameterEntry) != null) {
+                System.out.println("Par id " + parameter.id + " at line " + node.getLine() + " already declared");
+                stErrors++;
+            }
+        }
+        node.declarations.forEach(this::visit);
+        visit(node.exp);
+
+        // Remove the current nesting level symbolTable.
+        symbolTable.remove(nestingLevel--);
+        declarationOffset = prevDeclarationOffset;
+        return null;
     }
 
     @Override
     public Void visitNode(ClassCallNode node) {
         if (print) printNode(node);
-        throw new UnimplException();
+        final STentry entry = stLookup(node.objectId);
+        if (entry == null) {
+            System.out.println("Object id " + node.objectId + " was not declared");
+            stErrors++;
+        } else if (entry.type instanceof final RefTypeNode refTypeNode) {
+            node.entry = entry;
+            node.nestingLevel = nestingLevel;
+            final VirtualTable virtualTable = classTable.get(refTypeNode.typeId);
+            if (virtualTable.containsKey(node.methodId)) {
+                node.methodEntry = virtualTable.get(node.methodId);
+            } else {
+                System.out.println(
+                        "Object id " + node.objectId + " at line " + node.getLine() + " has no method " + node.methodId
+                );
+                stErrors++;
+            }
+        }
+        node.args.forEach(this::visit);
+        return null;
     }
 
     @Override
-    public Void visitNode(NewNode n) {
-        if (print) printNode(n);
-        throw new UnimplException();
+    public Void visitNode(NewNode node) {
+        if (print) printNode(node);
+        if (!classTable.containsKey(node.classId)) {
+            System.out.println("Class id " + node.classId + " was not declared");
+            stErrors++;
+        }
+        node.entry = symbolTable.get(0).get(node.classId);
+        node.args.forEach(this::visit);
+        return null;
     }
 
     @Override
