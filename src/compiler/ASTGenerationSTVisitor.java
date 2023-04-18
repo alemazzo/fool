@@ -280,7 +280,7 @@ public class ASTGenerationSTVisitor extends FOOLBaseVisitor<Node> {
     @Override
     public Node visitNull(NullContext c) {
         if (print) printVarAndProdName(c);
-        throw new UnimplException();
+        return new EmptyNode();
     }
 
 }
