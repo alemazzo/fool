@@ -7,6 +7,7 @@ import compiler.lib.TypeNode;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 public class AST {
 
@@ -391,6 +392,18 @@ public class AST {
 
     public static class ClassNode extends DecNode {
 
+        private final String classId;
+        private final Optional<String> superId;
+        private final List<FieldNode> fields;
+        private final List<MethodNode> methods;
+        
+        public ClassNode(String classId, Optional<String> superId, List<FieldNode> fields, List<MethodNode> methods) {
+            this.classId = classId;
+            this.superId = superId;
+            this.fields = fields;
+            this.methods = methods;
+        }
+
         @Override
         public <S, E extends Exception> S accept(BaseASTVisitor<S, E> visitor) throws E {
             return visitor.visitNode(this);
@@ -399,6 +412,10 @@ public class AST {
     }
 
     public static class FieldNode extends DecNode {
+
+        public FieldNode(String fieldId, Node type) {
+
+        }
 
         @Override
         public <S, E extends Exception> S accept(BaseASTVisitor<S, E> visitor) throws E {

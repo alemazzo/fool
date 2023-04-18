@@ -11,6 +11,8 @@ import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.IntStream;
 
 import static compiler.lib.FOOLlib.extractCtxName;
 import static compiler.lib.FOOLlib.lowerizeFirstChar;
@@ -250,7 +252,32 @@ public class ASTGenerationSTVisitor extends FOOLBaseVisitor<Node> {
     @Override
     public Node visitCldec(CldecContext c) {
         if (print) printVarAndProdName(c);
-        throw new UnimplException();
+        final String classId = c.ID(0).getText();
+        final Optional<String> superId = c.EXTENDS() == null ?
+                Optional.empty() : Optional.of(c.ID(1).getText());
+        final int idPadding = superId.isPresent() ? 2 : 1;
+        final List<String> fieldIds = c.ID().stream()
+                .skip(idPadding)
+                .map(ParseTree::getText)
+                .toList();
+        final List<TypeNode> fieldTypes = c.type().stream()
+                .map(this::visit)
+                .map(n -> (TypeNode) n)
+                .toList();
+        final List<FieldNode> fields = IntStream.range(0, fieldIds.size())
+                .mapToObj(i -> {
+                    final FieldNode f = new FieldNode(fieldIds.get(i), fieldTypes.get(i));
+                    f.setLine(c.ID(i + idPadding).getSymbol().getLine());
+                    return f;
+                })
+                .toList();
+        final List<MethodNode> methods = c.methdec().stream()
+                .map(this::visit)
+                .map(n -> (MethodNode) n)
+                .toList();
+        final ClassNode classNode = new ClassNode(classId, superId, fields, methods);
+        classNode.setLine(c.ID(0).getSymbol().getLine());
+        return classNode;
     }
 
     @Override
