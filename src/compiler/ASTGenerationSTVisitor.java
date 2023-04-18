@@ -2,7 +2,6 @@ package compiler;
 
 import compiler.AST.*;
 import compiler.FOOLParser.*;
-import compiler.exc.UnimplException;
 import compiler.lib.DecNode;
 import compiler.lib.Node;
 import compiler.lib.TypeNode;
@@ -339,7 +338,9 @@ public class ASTGenerationSTVisitor extends FOOLBaseVisitor<Node> {
     @Override
     public Node visitIdType(IdTypeContext c) {
         if (print) printVarAndProdName(c);
-        throw new UnimplException();
+        final RefTypeNode refTypeNode = new RefTypeNode(c.ID().getText());
+        refTypeNode.setLine(c.ID().getSymbol().getLine());
+        return refTypeNode;
     }
 
     @Override

@@ -512,6 +512,12 @@ public class AST {
 
     public static class RefTypeNode extends TypeNode {
 
+        private final String typeId;
+        
+        public RefTypeNode(String typeId) {
+            this.typeId = typeId;
+        }
+
         @Override
         public <S, E extends Exception> S accept(BaseASTVisitor<S, E> visitor) throws E {
             return visitor.visitNode(this);
