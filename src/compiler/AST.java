@@ -433,7 +433,6 @@ public class AST {
         private final Node exp;
 
         public MethodNode(String methodId, TypeNode returnType, List<ParNode> params, List<DecNode> declarations, Node exp) {
-            super();
             this.methodId = methodId;
             this.returnType = returnType;
             this.params = params;
@@ -450,6 +449,16 @@ public class AST {
 
     public static class ClassCallNode extends Node {
 
+        private final String objectId;
+        private final String methodId;
+        private final List<Node> args;
+
+        public ClassCallNode(String objectId, String methodId, List<Node> args) {
+            this.objectId = objectId;
+            this.methodId = methodId;
+            this.args = args;
+        }
+
         @Override
         public <S, E extends Exception> S accept(BaseASTVisitor<S, E> visitor) throws E {
             return visitor.visitNode(this);
@@ -463,7 +472,6 @@ public class AST {
         private final List<Node> args;
 
         public NewNode(String classId, List<Node> args) {
-            super();
             this.classId = classId;
             this.args = args;
         }
