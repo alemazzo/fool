@@ -5,6 +5,7 @@ import compiler.lib.DecNode;
 import compiler.lib.Node;
 import compiler.lib.TypeNode;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -397,6 +398,8 @@ public class AST {
         final List<FieldNode> fields;
         final List<MethodNode> methods;
 
+        ClassTypeNode type;
+
         public ClassNode(String classId, Optional<String> superId, List<FieldNode> fields, List<MethodNode> methods) {
             this.classId = classId;
             this.superId = superId;
@@ -414,9 +417,9 @@ public class AST {
     public static class FieldNode extends DecNode {
 
         final String fieldId;
-        final Node type;
+        int offset;
 
-        public FieldNode(String fieldId, Node type) {
+        public FieldNode(String fieldId, TypeNode type) {
             this.fieldId = fieldId;
             this.type = type;
         }
@@ -431,10 +434,12 @@ public class AST {
     public static class MethodNode extends DecNode {
 
         final String methodId;
-        private final TypeNode returnType;
-        private final List<ParNode> params;
-        private final List<DecNode> declarations;
-        private final Node exp;
+        final TypeNode returnType;
+        final List<ParNode> params;
+        final List<DecNode> declarations;
+        final Node exp;
+
+        int offset = 0;
 
         public MethodNode(String methodId, TypeNode returnType, List<ParNode> params, List<DecNode> declarations, Node exp) {
             this.methodId = methodId;
@@ -498,6 +503,24 @@ public class AST {
 
     public static class ClassTypeNode extends TypeNode {
 
+        final List<TypeNode> fields;
+        final List<ArrowTypeNode> methods;
+
+        public ClassTypeNode(List<TypeNode> fields, List<ArrowTypeNode> methods) {
+            this.fields = fields;
+            this.methods = methods;
+        }
+
+        public ClassTypeNode(ClassTypeNode parent) {
+            this.fields = new ArrayList<>(parent.fields);
+            this.methods = new ArrayList<>(parent.methods);
+        }
+
+        public ClassTypeNode() {
+            this.fields = new ArrayList<>();
+            this.methods = new ArrayList<>();
+        }
+
         @Override
         public <S, E extends Exception> S accept(BaseASTVisitor<S, E> visitor) throws E {
             return visitor.visitNode(this);
@@ -506,6 +529,12 @@ public class AST {
     }
 
     public static class MethodTypeNode extends TypeNode {
+
+        final ArrowTypeNode functionalType;
+
+        public MethodTypeNode(ArrowTypeNode functionalType) {
+            this.functionalType = functionalType;
+        }
 
         @Override
         public <S, E extends Exception> S accept(BaseASTVisitor<S, E> visitor) throws E {
