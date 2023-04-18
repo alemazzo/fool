@@ -392,10 +392,10 @@ public class AST {
 
     public static class ClassNode extends DecNode {
 
-        private final String classId;
-        private final Optional<String> superId;
-        private final List<FieldNode> fields;
-        private final List<MethodNode> methods;
+        final String classId;
+        final Optional<String> superId;
+        final List<FieldNode> fields;
+        final List<MethodNode> methods;
 
         public ClassNode(String classId, Optional<String> superId, List<FieldNode> fields, List<MethodNode> methods) {
             this.classId = classId;
@@ -413,8 +413,12 @@ public class AST {
 
     public static class FieldNode extends DecNode {
 
-        public FieldNode(String fieldId, Node type) {
+        final String fieldId;
+        final Node type;
 
+        public FieldNode(String fieldId, Node type) {
+            this.fieldId = fieldId;
+            this.type = type;
         }
 
         @Override
@@ -426,7 +430,7 @@ public class AST {
 
     public static class MethodNode extends DecNode {
 
-        private final String methodId;
+        final String methodId;
         private final TypeNode returnType;
         private final List<ParNode> params;
         private final List<DecNode> declarations;
