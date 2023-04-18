@@ -287,13 +287,13 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
     @Override
     public Void visitNode(ClassTypeNode n) {
         if (print) printNode(n);
-        throw new UnimplException();
+        return null;
     }
 
     @Override
     public Void visitNode(MethodTypeNode n) {
         if (print) printNode(n);
-        throw new UnimplException();
+        return null;
     }
 
     @Override
