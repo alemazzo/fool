@@ -512,8 +512,8 @@ public class AST {
 
     public static class RefTypeNode extends TypeNode {
 
-        private final String typeId;
-        
+        final String typeId;
+
         public RefTypeNode(String typeId) {
             this.typeId = typeId;
         }

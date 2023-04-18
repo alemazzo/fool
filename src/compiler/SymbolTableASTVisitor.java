@@ -14,6 +14,7 @@ import java.util.Map;
 
 public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
 
+    private final Map<String, VirtualTable> classTable = new HashMap<>();
     private final List<Map<String, STentry>> symTable = new ArrayList<>();
     int stErrors = 0;
     private int nestingLevel = 0; // current nesting level
@@ -180,12 +181,6 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
         return null;
     }
 
-    // ******************
-    // ******************
-    // OPERATOR EXTENSION
-    // ******************
-    // ******************
-
     @Override
     public Void visitNode(MinusNode n) {
         if (print) printNode(n);
@@ -193,6 +188,12 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
         visit(n.right);
         return null;
     }
+
+    // ******************
+    // ******************
+    // OPERATOR EXTENSION
+    // ******************
+    // ******************
 
     @Override
     public Void visitNode(DivNode n) {
@@ -241,17 +242,17 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
         return null;
     }
 
-    // *************************
-    // *************************
-    // OBJECT-ORIENTED EXTENSION
-    // *************************
-    // *************************
-
     @Override
     public Void visitNode(ClassNode n) {
         if (print) printNode(n);
         throw new UnimplException();
     }
+
+    // *************************
+    // *************************
+    // OBJECT-ORIENTED EXTENSION
+    // *************************
+    // *************************
 
     @Override
     public Void visitNode(FieldNode node) {
@@ -298,13 +299,20 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
     @Override
     public Void visitNode(RefTypeNode n) {
         if (print) printNode(n);
-        throw new UnimplException();
+        if (!this.classTable.containsKey(n.typeId)) {
+            System.out.println("Class with id: " + n.typeId + " on line: " + n.getLine() + " was not declared");
+            stErrors++;
+        }
+        return null;
     }
 
     @Override
     public Void visitNode(EmptyTypeNode n) {
         if (print) printNode(n);
         return null;
+    }
+
+    static class VirtualTable extends HashMap<String, STentry> {
     }
 
 }
