@@ -396,7 +396,7 @@ public class AST {
         private final Optional<String> superId;
         private final List<FieldNode> fields;
         private final List<MethodNode> methods;
-        
+
         public ClassNode(String classId, Optional<String> superId, List<FieldNode> fields, List<MethodNode> methods) {
             this.classId = classId;
             this.superId = superId;
@@ -425,6 +425,21 @@ public class AST {
     }
 
     public static class MethodNode extends DecNode {
+
+        private final String methodId;
+        private final TypeNode returnType;
+        private final List<ParNode> params;
+        private final List<DecNode> declarations;
+        private final Node exp;
+
+        public MethodNode(String methodId, TypeNode returnType, List<ParNode> params, List<DecNode> declarations, Node exp) {
+            super();
+            this.methodId = methodId;
+            this.returnType = returnType;
+            this.params = params;
+            this.declarations = declarations;
+            this.exp = exp;
+        }
 
         @Override
         public <S, E extends Exception> S accept(BaseASTVisitor<S, E> visitor) throws E {
