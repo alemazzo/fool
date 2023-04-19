@@ -313,8 +313,6 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
                     fieldEntry = new STentry(nestingLevel, field.getType(), overriddenFieldEntry.offset);
                     classTypeNode.fields.set(-fieldEntry.offset - 1, fieldEntry.type);
                 }
-                System.out.println("Class attribute " + field.fieldId + " at line " + field.getLine() + " already declared in super class");
-                stErrors++;
             } else {
                 classTypeNode.fields.add(-fieldEntry.offset - 1, fieldEntry.type);
             }
@@ -441,6 +439,16 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
     }
 
     @Override
+    public Void visitNode(RefTypeNode node) {
+        if (print) printNode(node);
+        if (!this.classTable.containsKey(node.typeId)) {
+            System.out.println("Class with id: " + node.typeId + " on line: " + node.getLine() + " was not declared");
+            stErrors++;
+        }
+        return null;
+    }
+
+    @Override
     public Void visitNode(FieldNode node) {
         if (print) printNode(node);
         return null;
@@ -461,16 +469,6 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
     @Override
     public Void visitNode(MethodTypeNode n) {
         if (print) printNode(n);
-        return null;
-    }
-
-    @Override
-    public Void visitNode(RefTypeNode n) {
-        if (print) printNode(n);
-        if (!this.classTable.containsKey(n.typeId)) {
-            System.out.println("Class with id: " + n.typeId + " on line: " + n.getLine() + " was not declared");
-            stErrors++;
-        }
         return null;
     }
 
