@@ -13,7 +13,6 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
     private final Map<String, VirtualTable> classTable = new HashMap<>();
     private final List<Map<String, STentry>> symbolTable = new ArrayList<>();
     int stErrors = 0;
-    private int declarationOffset = -2; // counter for offset of local declarations at current nesting level
     private int nestingLevel = 0; // current nesting level
     private int decOffset = -2; // counter for offset of local declarations at current nesting level
 
@@ -322,11 +321,11 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
         }
 
         // Setting the method offset
-        int prevDeclarationOffset = declarationOffset;
-        declarationOffset = 0;
+        int prevDecOffset = decOffset;
+        decOffset = 0;
         if (isSubClass) {
             final ClassTypeNode superTypeNode = (ClassTypeNode) symbolTable.get(0).get(node.superId.get()).type;
-            declarationOffset = superTypeNode.methods.size();
+            decOffset = superTypeNode.methods.size();
         }
 
         for (final MethodNode method : node.methods) {
@@ -347,7 +346,7 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
 
         // Remove the class from the symbol table and restore the previous declaration offset
         symbolTable.remove(nestingLevel--);
-        declarationOffset = prevDeclarationOffset;
+        decOffset = prevDecOffset;
         return null;
     }
 
@@ -360,13 +359,13 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
                 .toList();
         final boolean isOverriding = currentTable.containsKey(node.methodId);
         final TypeNode methodType = new MethodTypeNode(new ArrowTypeNode(params, node.returnType));
-        STentry entry = new STentry(nestingLevel, methodType, declarationOffset++);
+        STentry entry = new STentry(nestingLevel, methodType, decOffset++);
         if (isOverriding) {
             final var overriddenMethodEntry = currentTable.get(node.methodId);
             final boolean isOverridingAMethod = overriddenMethodEntry != null && overriddenMethodEntry.type instanceof MethodTypeNode;
             if (isOverridingAMethod) {
                 entry = new STentry(nestingLevel, methodType, overriddenMethodEntry.offset);
-                declarationOffset--;
+                decOffset--;
             } else {
                 System.out.println("Cannot override a class attribute with a method: " + node.methodId);
                 stErrors++;
@@ -382,8 +381,8 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
         symbolTable.add(methodTable);
 
         // Set the declaration offset
-        int prevDeclarationOffset = declarationOffset;
-        declarationOffset = -2;
+        int prevDeclarationOffset = decOffset;
+        decOffset = -2;
         int parameterOffset = 1;
 
         for (ParNode parameter : node.params) {
@@ -398,7 +397,7 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
 
         // Remove the current nesting level symbolTable.
         symbolTable.remove(nestingLevel--);
-        declarationOffset = prevDeclarationOffset;
+        decOffset = prevDeclarationOffset;
         return null;
     }
 
@@ -421,6 +420,9 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
                 );
                 stErrors++;
             }
+        } else {
+            System.out.println("Object id " + node.objectId + " at line " + node.getLine() + " is not a RefType");
+            stErrors++;
         }
         node.args.forEach(this::visit);
         return null;

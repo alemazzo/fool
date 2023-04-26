@@ -483,7 +483,6 @@ public class AST {
 
         final String classId;
         final List<Node> args;
-
         STentry entry;
 
         public NewNode(String classId, List<Node> args) {
