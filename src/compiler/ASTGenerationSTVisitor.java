@@ -284,19 +284,10 @@ public class ASTGenerationSTVisitor extends FOOLBaseVisitor<Node> {
         if (print) printVarAndProdName(c);
         final String methodId = c.ID(0).getText();
         final TypeNode returnType = (TypeNode) visit(c.type(0));
-        final List<String> paramIds = c.ID().stream()
-                .skip(1)
-                .map(ParseTree::getText)
-                .toList();
-        final List<TypeNode> paramTypes = c.type().stream()
-                .skip(1)
-                .map(this::visit)
-                .map(n -> (TypeNode) n)
-                .toList();
-        final List<ParNode> params = IntStream.range(0, paramIds.size())
+        final List<ParNode> params = IntStream.range(1, c.ID().size())
                 .mapToObj(i -> {
-                    final ParNode p = new ParNode(paramIds.get(i), paramTypes.get(i));
-                    p.setLine(c.ID(i + 1).getSymbol().getLine());
+                    final ParNode p = new ParNode(c.ID(i).getText(), (TypeNode) visit(c.type(i)));
+                    p.setLine(c.ID(i).getSymbol().getLine());
                     return p;
                 })
                 .toList();
