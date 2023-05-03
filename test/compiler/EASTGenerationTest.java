@@ -23,6 +23,12 @@ public class EASTGenerationTest {
     // OBJECT-ORIENTED EXTENSION
     // *************************
     // *************************
+    @Test
+    void testIsClass(){
+        final var code = "let class Account (money:int) { fun getMon:int () money;} in true;";
+        final var progNode = getProgNodeFromEAST(fromString(code));
+        assertEquals(AST.ClassTypeNode.class, progNode.exp.getClass());
+    }
 
 
 }

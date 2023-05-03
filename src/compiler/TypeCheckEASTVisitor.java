@@ -266,9 +266,12 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
     @Override
     public TypeNode visitNode(ClassNode n) throws TypeException {
         if (print) printNode(n,n.classId);
+        final boolean isSubClass = n.superId.isPresent();
+        final String superId = isSubClass ? n.superId.get() : null;
         // if class has a super class, add it as super type
-        if (n.superId.isPresent()) {
-            superType.put(n.classId, String.valueOf(n.superId));
+
+        if (isSubClass) {
+            superType.put(n.classId, String.valueOf(superId));
         }
         // visit all methods
         for (Node method : n.methods)
@@ -279,7 +282,7 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
                 System.out.println("Type checking error in a Class declaration: " + e.text);
             }
 
-        if (n.superId.isEmpty() || n.superEntry == null) {
+        if (!isSubClass || n.superEntry == null) {
             return null;
         }
 
