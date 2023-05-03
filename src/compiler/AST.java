@@ -397,8 +397,8 @@ public class AST {
         final Optional<String> superId;
         final List<FieldNode> fields;
         final List<MethodNode> methods;
-
         ClassTypeNode type;
+        STentry superEntry;
 
         public ClassNode(String classId, Optional<String> superId, List<FieldNode> fields, List<MethodNode> methods) {
             this.classId = classId;
