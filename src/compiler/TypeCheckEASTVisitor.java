@@ -9,6 +9,7 @@ import compiler.lib.Node;
 import compiler.lib.TypeNode;
 
 import static compiler.TypeRels.isSubtype;
+import static compiler.TypeRels.superType;
 
 //visitNode(n) fa il type checking di un Node n e ritorna:
 //- per una espressione, il suo tipo (oggetto BoolTypeNode o IntTypeNode)
@@ -263,81 +264,142 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
     // Controllare se bisogna lanciare la TypeException e
     // nel caso aggiungerla alla signature del metodo
     @Override
-    public TypeNode visitNode(ClassNode n) {
+    public TypeNode visitNode(ClassNode n) throws TypeException {
+        if (print) printNode(n,n.classId);
+        final boolean isSubClass = n.superId.isPresent();
+        final String superId = isSubClass ? n.superId.get() : null;
+        // if class has a super class, add it as super type
+
+        if (isSubClass) {
+            superType.put(n.classId, String.valueOf(superId));
+        }
+        // visit all methods
+        for (Node method : n.methods)
+            try {
+                visit(method);
+            } catch (IncomplException e) {
+            } catch (TypeException e) {
+                System.out.println("Type checking error in a Class declaration: " + e.text);
+            }
+
+        if (!isSubClass || n.superEntry == null) {
+            return null;
+        }
+
+        var classType = (ClassTypeNode) n.getType();
+        var parentCT = (ClassTypeNode) n.superEntry.type;
+
+        // check if all fields and methods of the class are the correct subtypes and with the correct position
+        for (var field : n.fields) {
+            int position = -field.offset-1;
+            if (position < parentCT.fields.size()
+                    && !isSubtype(classType.fields.get(position), parentCT.fields.get(position))) {
+                throw new TypeException("Wrong type for field " + field.fieldId, field.getLine());
+            }
+        }
+        for (var method : n.methods) {
+            int position = method.offset;
+            if (position < parentCT.methods.size()
+                    && !isSubtype(classType.methods.get(position), parentCT.methods.get(position))) {
+                throw new TypeException("Wrong type for method " + method.methodId, method.getLine());
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public TypeNode visitNode(MethodNode n) throws TypeException {
+        if (print) printNode(n,n.methodId);
+        // visit all declarations
+        for (Node dec : n.declarations)
+            try {
+                visit(dec);
+            } catch (IncomplException e) {
+            } catch (TypeException e) {
+                System.out.println("Type checking error in a method declaration: " + e.text);
+            }
+        // visit expression and check if it is a subtype of the return type
+        if ( !isSubtype(visit(n.exp),ckvisit(n.returnType)) )
+            throw new TypeException("Wrong return type for method " + n.methodId ,n.getLine());
+        return null;
+    }
+
+    @Override
+    public TypeNode visitNode(ClassCallNode n) throws TypeException {
+        if (print) printNode(n,n.objectId);
+
+        TypeNode t = visit(n.methodEntry);
+        // visit method, if it is a method type, get the functional type
+        if (t instanceof MethodTypeNode mthtyp) {
+            t = mthtyp.functionalType;
+        }
+        // if it is not an arrow type, throw an exception
+        if ( !(t instanceof ArrowTypeNode arwtyp) )
+            throw new TypeException("Invocation of a non-function "+n.methodId,n.getLine());
+        // check if the number of parameters is correct
+        if ( !(arwtyp.parlist.size() == n.args.size()) )
+            throw new TypeException("Wrong number of parameters in the invocation of method "+n.methodId,n.getLine());
+        // check if the types of the parameters are correct
+        for (int i = 0; i < n.args.size(); i++)
+            if ( !(isSubtype(visit(n.args.get(i)), arwtyp.parlist.get(i))) )
+                throw new TypeException("Wrong type for "+(i+1)+"-th parameter in the invocation of method "+n.methodId,n.getLine());
+        return arwtyp.ret;
+    }
+
+
+    @Override
+    public TypeNode visitNode(NewNode n) throws TypeException {
+        if (print) printNode(n,n.classId);
+        TypeNode t = visit(n.entry);
+
+        //  check invocation of a constructor
+        if ( !(t instanceof ClassTypeNode node) )
+            throw new TypeException("Invocation of a non-constructor "+n.classId,n.getLine());
+
+        // check if the number of parameters is correct
+        if ( !(node.fields.size() == n.args.size()) )
+            throw new TypeException("Wrong number of parameters in the invocation of constructor "+n.classId,n.getLine());
+
+        // check if the types of the parameters are correct
+        for (int i = 0; i < n.args.size(); i++)
+            if ( !(isSubtype(visit(n.args.get(i)), node.fields.get(i))) )
+                throw new TypeException("Wrong type for "+(i+1)+"-th parameter in the invocation of "+n.classId,n.getLine());
+
+        return new RefTypeNode(n.classId);
+    }
+
+
+    @Override
+    public TypeNode visitNode(EmptyNode n) throws TypeException {
         if (print) printNode(n);
-        throw new UnimplException();
+        return new EmptyTypeNode();
     }
 
-    // Controllare se bisogna lanciare la TypeException e
-    // nel caso aggiungerla alla signature del metodo
     @Override
-    public TypeNode visitNode(FieldNode node) {
-        if (print) printNode(node);
-        throw new UnimplException();
-    }
-
-    // Controllare se bisogna lanciare la TypeException e
-    // nel caso aggiungerla alla signature del metodo
-    @Override
-    public TypeNode visitNode(MethodNode n) {
+    public TypeNode visitNode(ClassTypeNode n) throws TypeException{
         if (print) printNode(n);
-        throw new UnimplException();
+        for (Node field: n.fields) visit(field);
+        for (Node method: n.methods) visit(method);
+        return null;
     }
-
-    // Controllare se bisogna lanciare la TypeException e
-    // nel caso aggiungerla alla signature del metodo
     @Override
-    public TypeNode visitNode(ClassCallNode node) {
-        if (print) printNode(node);
-        throw new UnimplException();
-    }
-
-    // Controllare se bisogna lanciare la TypeException e
-    // nel caso aggiungerla alla signature del metodo
-    @Override
-    public TypeNode visitNode(NewNode n) {
+    public TypeNode visitNode(MethodTypeNode n) throws TypeException {
         if (print) printNode(n);
-        throw new UnimplException();
+        for (Node par: n.functionalType.parlist) visit(par);
+        visit(n.functionalType.ret,"->"); //marks return type
+        return null;
     }
 
-    // Controllare se bisogna lanciare la TypeException e
-    // nel caso aggiungerla alla signature del metodo
     @Override
-    public TypeNode visitNode(EmptyNode n) {
+    public TypeNode visitNode(RefTypeNode n) throws TypeException {
         if (print) printNode(n);
-        throw new UnimplException();
+        return null;
     }
 
-    // Controllare se bisogna lanciare la TypeException e
-    // nel caso aggiungerla alla signature del metodo
     @Override
-    public TypeNode visitNode(ClassTypeNode n) {
+    public TypeNode visitNode(EmptyTypeNode n) throws TypeException {
         if (print) printNode(n);
-        throw new UnimplException();
-    }
-
-    // Controllare se bisogna lanciare la TypeException e
-    // nel caso aggiungerla alla signature del metodo
-    @Override
-    public TypeNode visitNode(MethodTypeNode n) {
-        if (print) printNode(n);
-        throw new UnimplException();
-    }
-
-    // Controllare se bisogna lanciare la TypeException e
-    // nel caso aggiungerla alla signature del metodo
-    @Override
-    public TypeNode visitNode(RefTypeNode n) {
-        if (print) printNode(n);
-        throw new UnimplException();
-    }
-
-    // Controllare se bisogna lanciare la TypeException e
-    // nel caso aggiungerla alla signature del metodo
-    @Override
-    public TypeNode visitNode(EmptyTypeNode n) {
-        if (print) printNode(n);
-        throw new UnimplException();
+        return null;
     }
 
 }
