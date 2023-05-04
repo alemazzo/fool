@@ -512,18 +512,16 @@ public class AST {
         final List<ArrowTypeNode> methods;
 
         public ClassTypeNode(List<TypeNode> fields, List<ArrowTypeNode> methods) {
-            this.fields = fields;
-            this.methods = methods;
+            this.fields = new ArrayList<>(fields);
+            this.methods = new ArrayList<>(methods);
         }
 
         public ClassTypeNode(ClassTypeNode parent) {
-            this.fields = new ArrayList<>(parent.fields);
-            this.methods = new ArrayList<>(parent.methods);
+            this(parent.fields, parent.methods);
         }
 
         public ClassTypeNode() {
-            this.fields = new ArrayList<>();
-            this.methods = new ArrayList<>();
+            this(new ArrayList<>(), new ArrayList<>());
         }
 
         @Override

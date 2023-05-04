@@ -289,7 +289,7 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
         int fieldOffset = -1;
         if (isSubClass) {
             final ClassTypeNode superTypeNode = (ClassTypeNode) symbolTable.get(0).get(node.superId.get()).type;
-            fieldOffset = -(superTypeNode.fields.size() - 1);
+            fieldOffset = -superTypeNode.fields.size() - 1;
         }
 
         for (final FieldNode field : node.fields) {
