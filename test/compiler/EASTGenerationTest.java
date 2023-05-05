@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import static compiler.CodeUtils.getProgLetInNodeFromEAST;
 import static org.antlr.v4.runtime.CharStreams.fromString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class EASTGenerationTest {
 
@@ -42,6 +43,7 @@ public class EASTGenerationTest {
     // OBJECT-ORIENTED EXTENSION
     // *************************
     // *************************
+
     @Test
     void testClassDec() {
         final var progNode = getProgLetInNodeFromEAST(fromString(BASE_CLASS_CODE));
@@ -101,5 +103,28 @@ public class EASTGenerationTest {
         assertEquals("getMon2", methodNode2.methodId);
     }
 
+    @Test
+    void testClassWithSuperclass() {
+        final var code = """
+                let
+                    class Account (money:int) {
+                        fun getMon:int () money;
+                    }
+                    class TradingAcc extends Account (invested:int) {
+                        fun getInv:int () invested;
+                    }
+                in
+                    true;
+                """;
+        final var progNode = getProgLetInNodeFromEAST(fromString(code));
+        assertEquals(2, progNode.decList.size());
+
+        final var classNode = (AST.ClassNode) progNode.decList.get(0);
+        final var classNode2 = (AST.ClassNode) progNode.decList.get(1);
+
+        assertTrue(classNode2.superId.isPresent());
+        assertEquals("Account", classNode2.superId.get());
+
+    }
 
 }
