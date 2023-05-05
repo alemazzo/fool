@@ -18,6 +18,10 @@ import static org.antlr.v4.runtime.CharStreams.fromString;
 
 public class CodeUtils {
 
+    private static final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    private static final PrintStream ps = new PrintStream(outputStream);
+    private static PrintStream old = System.out;
+
     public static ParseTree getParseTree(final CharStream chars) {
         FOOLLexer lexer = new FOOLLexer(chars);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
@@ -78,6 +82,18 @@ public class CodeUtils {
         return parserASM.code;
     }
 
+    public static void interceptOutput() {
+        old = System.out;
+        System.setOut(ps);
+    }
+
+    public static String getOutput() {
+        System.setOut(ps);
+        System.out.flush();
+        System.setOut(old);
+        final String output = outputStream.toString();
+        return output.substring(0, output.length() - 1);
+    }
 
     public static String getOutput(final CharStream chars) {
         final int[] code = getSVMCode(chars);

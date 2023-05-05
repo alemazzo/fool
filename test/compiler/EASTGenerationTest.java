@@ -2,7 +2,7 @@ package compiler;
 
 import org.junit.jupiter.api.Test;
 
-import static compiler.CodeUtils.getProgLetInNodeFromEAST;
+import static compiler.CodeUtils.*;
 import static org.antlr.v4.runtime.CharStreams.fromString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -125,6 +125,62 @@ public class EASTGenerationTest {
         assertTrue(classNode2.superId.isPresent());
         assertEquals("Account", classNode2.superId.get());
 
+        assertEquals(1, classNode.fields.size());
+        assertEquals(1, classNode2.fields.size());
+    }
+
+
+    @Test
+    void testClassWithSuperclassThatOverrideFieldAndMethod() {
+        final var code = """
+                let
+                    class Account (money:int) {
+                        fun getMon:int () money;
+                    }
+                    class TradingAcc extends Account (money:int) {
+                        fun getMon:int () money;
+                    }
+                in
+                    true;
+                """;
+        final var progNode = getProgLetInNodeFromEAST(fromString(code));
+        assertEquals(2, progNode.decList.size());
+
+        final var classNode = (AST.ClassNode) progNode.decList.get(0);
+        final var classNode2 = (AST.ClassNode) progNode.decList.get(1);
+
+        assertTrue(classNode2.superId.isPresent());
+        assertEquals("Account", classNode2.superId.get());
+
+        assertEquals(1, classNode.fields.size());
+        assertEquals(1, classNode2.fields.size());
+        assertEquals("money", classNode.fields.get(0).fieldId);
+        assertEquals("money", classNode2.fields.get(0).fieldId);
+
+        assertEquals(1, classNode.methods.size());
+        assertEquals(1, classNode2.methods.size());
+        assertEquals("getMon", classNode.methods.get(0).methodId);
+        assertEquals("getMon", classNode2.methods.get(0).methodId);
+
+    }
+
+    @Test
+    void testClassWithSuperclassWithFieldThatOverrideMethod() {
+        final var code = """
+                let
+                    class Account (money:int) {
+                        fun getMon:int () money;
+                    }
+                    class TradingAcc extends Account (money:int, getMon:int) {
+                    
+                    }
+                in
+                    true;
+                """;
+        interceptOutput();
+        final var progNode = getProgLetInNodeFromEAST(fromString(code));
+        final var output = getOutput();
+        assertEquals("Cannot override method getMon with a field", output);
     }
 
 }

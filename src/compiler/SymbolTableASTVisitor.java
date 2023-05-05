@@ -315,7 +315,7 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
                 final STentry overriddenFieldEntry = virtualTable.get(field.fieldId);
                 final boolean isOverridingAMethod = overriddenFieldEntry.type instanceof MethodTypeNode;
                 if (isOverridingAMethod) {
-                    System.out.println("Cannot override field id " + field.fieldId + " with a method");
+                    System.out.println("Cannot override method " + field.fieldId + " with a field");
                     stErrors++;
                 } else {
                     fieldEntry = new STentry(nestingLevel, field.getType(), overriddenFieldEntry.offset);
