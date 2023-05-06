@@ -17,12 +17,15 @@ public class TypeRels {
 
         if (!(a instanceof RefTypeNode aRefTypeNode)) return null;
 
-        final Stream<String> superTypes = Stream.iterate(aRefTypeNode.typeId, Objects::nonNull, superType::get);
-        return superTypes
+        return superTypes(aRefTypeNode.typeId)
                 .map(RefTypeNode::new)
                 .filter(typeOfSuperA -> isSubtype(b, typeOfSuperA))
                 .findFirst()
                 .orElse(null);
+    }
+
+    private static Stream<String> superTypes(String type) {
+        return Stream.iterate(type, Objects::nonNull, superType::get);
     }
 
     public static boolean isSubtype(TypeNode a, TypeNode b) {
@@ -65,8 +68,7 @@ public class TypeRels {
             return true;
         }
 
-        final Stream<String> superTypes = Stream.iterate(aType, Objects::nonNull, superType::get);
-        return superTypes.anyMatch(bType::equals);
+        return superTypes(aType).anyMatch(bType::equals);
 
     }
 
