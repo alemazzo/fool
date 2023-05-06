@@ -8,8 +8,7 @@ import compiler.lib.DecNode;
 import compiler.lib.Node;
 import compiler.lib.TypeNode;
 
-import static compiler.TypeRels.isSubtype;
-import static compiler.TypeRels.superType;
+import static compiler.TypeRels.*;
 
 //visitNode(n) fa il type checking di un Node n e ritorna:
 //- per una espressione, il suo tipo (oggetto BoolTypeNode o IntTypeNode)
@@ -94,11 +93,14 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
         if (print) printNode(n);
         if (!(isSubtype(visit(n.cond), new BoolTypeNode())))
             throw new TypeException("Non boolean condition in if", n.getLine());
-        TypeNode t = visit(n.th);
-        TypeNode e = visit(n.el);
-        if (isSubtype(t, e)) return e;
-        if (isSubtype(e, t)) return t;
-        throw new TypeException("Incompatible types in then-else branches", n.getLine());
+        final TypeNode t = visit(n.th);
+        final TypeNode e = visit(n.el);
+
+        final TypeNode returnType = lowestCommonAncestor(t, e);
+        if (returnType == null)
+            throw new TypeException("Incompatible types in then-else branches", n.getLine());
+        
+        return returnType;
     }
 
     @Override

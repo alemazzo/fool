@@ -11,6 +11,20 @@ import java.util.stream.Stream;
 public class TypeRels {
     public static Map<String, String> superType = new HashMap<>();
 
+    public static TypeNode lowestCommonAncestor(TypeNode a, TypeNode b) {
+        if (isSubtype(a, b)) return b;
+        if (isSubtype(b, a)) return a;
+
+        if (!(a instanceof RefTypeNode aRefTypeNode)) return null;
+
+        final Stream<String> superTypes = Stream.iterate(aRefTypeNode.typeId, Objects::nonNull, superType::get);
+        return superTypes
+                .map(RefTypeNode::new)
+                .filter(typeOfSuperA -> isSubtype(b, typeOfSuperA))
+                .findFirst()
+                .orElse(null);
+    }
+
     public static boolean isSubtype(TypeNode a, TypeNode b) {
         return isBoolAndInt(a, b)
                 || isEmptyTypeAndRefType(a, b)
