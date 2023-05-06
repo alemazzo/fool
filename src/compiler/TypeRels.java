@@ -61,7 +61,8 @@ public class TypeRels {
     }
 
     private static boolean isBoolAndInt(TypeNode a, TypeNode b) {
-        return isEqual(a, b) || ((a instanceof BoolTypeNode) && (b instanceof IntTypeNode));
+        return ((a instanceof BoolTypeNode) && (b instanceof IntTypeNode | b instanceof BoolTypeNode))
+                || ((a instanceof IntTypeNode) && (b instanceof IntTypeNode));
     }
 
     private static boolean isEqual(TypeNode a, TypeNode b) {
