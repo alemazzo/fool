@@ -1,14 +1,20 @@
 package compiler;
 
 import compiler.AST.*;
-import compiler.exc.UnimplException;
 import compiler.exc.VoidException;
 import compiler.lib.BaseASTVisitor;
+import compiler.lib.DecNode;
 import compiler.lib.Node;
+import svm.ExecuteVM;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static compiler.lib.FOOLlib.*;
 
 public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidException> {
+
+    private final List<List<String>> dispatchTables = new ArrayList<>();
 
     CodeGenerationASTVisitor() {
         super(false);
@@ -324,61 +330,188 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
     @Override
     public String visitNode(ClassNode n) {
         if (print) printNode(n);
-        throw new UnimplException();
-    }
 
-    @Override
-    public String visitNode(FieldNode node) {
-        if (print) printNode(node);
-        throw new UnimplException();
+        final List<String> dispatchTable = new ArrayList<>();
+        dispatchTables.add(dispatchTable);
+
+        final boolean isSubclass = n.superEntry != null;
+
+        if (isSubclass) {
+            final List<String> superDispatchTable = dispatchTables.get(-n.superEntry.offset - 2);
+            dispatchTable.addAll(superDispatchTable);
+        }
+
+        for (final MethodNode methodEntry : n.methods) {
+            visit(methodEntry);
+
+            final boolean isOverriding = methodEntry.offset < dispatchTable.size();
+            if (isOverriding) {
+                dispatchTable.set(methodEntry.offset, methodEntry.label);
+            } else {
+                dispatchTable.add(methodEntry.label);
+            }
+        }
+
+        String dispatchTableHeapCode = "";
+        for (final String label : dispatchTable) {
+            dispatchTableHeapCode = nlJoin(
+                    dispatchTableHeapCode,
+
+                    "push " + label,
+                    "lhp",
+                    "sw",
+
+                    "lhp",
+                    "push 1",
+                    "add",
+                    "shp"
+            );
+        }
+
+        return nlJoin(
+                "lhp",
+                dispatchTableHeapCode
+        );
+
     }
 
     @Override
     public String visitNode(MethodNode n) {
         if (print) printNode(n);
-        throw new UnimplException();
+
+        String declarationsCode = "";
+        String popDeclarationsCode = "";
+        for (final DecNode declaration : n.declarations) {
+            declarationsCode = nlJoin(
+                    declarationsCode,
+                    visit(declaration)
+            );
+            popDeclarationsCode = nlJoin(
+                    popDeclarationsCode,
+                    "pop"
+            );
+        }
+
+        String popParametersCode = "";
+        for (int i = 0; i < n.params.size(); i++) {
+            popParametersCode = nlJoin(
+                    popParametersCode,
+                    "pop"
+            );
+        }
+
+        final String methodLabel = freshFunLabel();
+
+        n.label = methodLabel;
+
+        putCode(
+                nlJoin(
+                        methodLabel + ":",
+                        "cfp",
+                        "lra",
+                        declarationsCode,
+                        visit(n.exp),
+                        popDeclarationsCode,
+                        "sra",
+                        "pop",
+                        popParametersCode,
+                        "sfp",
+                        "ltm",
+                        "lra",
+                        "js"
+                )
+        );
+
+        return null;
     }
 
     @Override
     public String visitNode(ClassCallNode node) {
         if (print) printNode(node);
-        throw new UnimplException();
+
+        String argumentsCode = "";
+        for (int i = node.args.size() - 1; i >= 0; i--) {
+            argumentsCode = nlJoin(
+                    argumentsCode,
+                    visit(node.args.get(i))
+            );
+        }
+
+        String getARCode = "";
+        for (int i = 0; i < node.nestingLevel - node.entry.nl; i++) {
+            getARCode = nlJoin(
+                    getARCode,
+                    "lw"
+            );
+        }
+
+        return nlJoin(
+                "lfp",
+                argumentsCode,
+                "lfp",
+                getARCode,
+                "push " + node.entry.offset,
+                "add",
+                "lw",
+                "stm",
+                "ltm",
+                "ltm",
+                "lw",
+                "push " + node.methodEntry.offset,
+                "add",
+                "lw",
+                "js"
+        );
+
     }
 
     @Override
     public String visitNode(NewNode n) {
         if (print) printNode(n);
-        throw new UnimplException();
+
+        String argumentsCode = "";
+        for (int i = 0; i < n.args.size(); i++) {
+            argumentsCode = nlJoin(
+                    argumentsCode,
+                    visit(n.args.get(i))
+            );
+        }
+
+
+        String moveArgumentsOnHeapCode = "";
+        for (int i = 0; i < n.args.size(); i++) {
+            moveArgumentsOnHeapCode = nlJoin(
+                    moveArgumentsOnHeapCode,
+                    "lhp",
+                    "sw",
+                    "lhp",
+                    "push 1",
+                    "add",
+                    "shp"
+            );
+        }
+
+        return nlJoin(
+                argumentsCode,
+                moveArgumentsOnHeapCode,
+                "push " + (ExecuteVM.MEMSIZE + n.entry.offset),
+                "lw",
+                "lhp",
+                "sw",
+
+                "lhp",
+                "lhp",
+                "push 1",
+                "add",
+                "shp"
+        );
+
     }
 
     @Override
     public String visitNode(EmptyNode n) {
         if (print) printNode(n);
-        throw new UnimplException();
-    }
-
-    @Override
-    public String visitNode(ClassTypeNode n) {
-        if (print) printNode(n);
-        throw new UnimplException();
-    }
-
-    @Override
-    public String visitNode(MethodTypeNode n) {
-        if (print) printNode(n);
-        throw new UnimplException();
-    }
-
-    @Override
-    public String visitNode(RefTypeNode n) {
-        if (print) printNode(n);
-        throw new UnimplException();
-    }
-
-    @Override
-    public String visitNode(EmptyTypeNode n) {
-        if (print) printNode(n);
-        throw new UnimplException();
+        return "push -1";
     }
 
 }
