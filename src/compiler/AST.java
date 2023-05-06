@@ -391,6 +391,12 @@ public class AST {
         }
     }
 
+    // *************************
+    // *************************
+    // OBJECT-ORIENTED EXTENSION
+    // *************************
+    // *************************
+
     public static class ClassNode extends DecNode {
 
         final String classId;
