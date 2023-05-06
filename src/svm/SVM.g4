@@ -65,24 +65,24 @@ POP	 : 'pop' ;
 ADD	 : 'add' ;  	
 SUB	 : 'sub' ;	
 MULT	 : 'mult' ;  	
-DIV	 : 'div' ;	// division
+DIV	 : 'div' ;	
 STOREW	 : 'sw' ; 	
 LOADW	 : 'lw' ;	
 BRANCH	 : 'b' ;	
 BRANCHEQ : 'beq' ;	
 BRANCHLESSEQ:'bleq' ;	
 JS	 : 'js' ;	
-LOADRA	 : 'lra' ;	//load register address
-STORERA  : 'sra' ;	//store register address
-LOADTM	 : 'ltm' ;	//load top of memory
-STORETM  : 'stm' ;	//store top of memory
-LOADFP	 : 'lfp' ;	//load frame pointer
-STOREFP	 : 'sfp' ;	//store frame pointer
-COPYFP   : 'cfp' ;  //copy frame pointer
-LOADHP	 : 'lhp' ;	//load heap pointer
-STOREHP	 : 'shp' ;	//store heap pointer
-PRINT	 : 'print' ;//print top of stack
-HALT	 : 'halt' ; //halt the program
+LOADRA	 : 'lra' ;	
+STORERA  : 'sra' ;	 
+LOADTM	 : 'ltm' ;	
+STORETM  : 'stm' ;	
+LOADFP	 : 'lfp' ;	
+STOREFP	 : 'sfp' ;	
+COPYFP   : 'cfp' ;      
+LOADHP	 : 'lhp' ;	
+STOREHP	 : 'shp' ;	
+PRINT	 : 'print' ;	
+HALT	 : 'halt' ;	
  
 COL	 : ':' ;
 LABEL	 : ('a'..'z'|'A'..'Z')('a'..'z' | 'A'..'Z' | '0'..'9')* ;

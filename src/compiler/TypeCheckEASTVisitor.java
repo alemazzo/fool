@@ -99,7 +99,7 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
         final TypeNode returnType = lowestCommonAncestor(t, e);
         if (returnType == null)
             throw new TypeException("Incompatible types in then-else branches", n.getLine());
-        
+
         return returnType;
     }
 
@@ -287,7 +287,7 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
             return null;
         }
 
-        final ClassTypeNode classType = (ClassTypeNode) n.getType();
+        final ClassTypeNode classType = n.type;
         final ClassTypeNode parentClassType = (ClassTypeNode) n.superEntry.type;
 
         // check if all fields and methods of the class are the correct subtypes and with the correct position

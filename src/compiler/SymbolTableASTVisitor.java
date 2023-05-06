@@ -259,9 +259,9 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
             // Check if the super class is declared
             if (classTable.containsKey(superId)) {
                 final STentry superSTEntry = symbolTable.get(0).get(superId);
-
                 final ClassTypeNode superTypeNode = (ClassTypeNode) superSTEntry.type;
                 tempClassTypeNode = new ClassTypeNode(superTypeNode);
+                node.superEntry = superSTEntry;
             } else {
                 System.out.println("Class " + superId + " at line " + node.getLine() + " not declared");
                 stErrors++;
