@@ -55,7 +55,9 @@ public class AST {
             exp = e;
         }
 
-        //void setType(TypeNode t) {type = t;}
+        void setType(TypeNode t) {
+            type = t;
+        }
 
         @Override
         public <S, E extends Exception> S accept(final BaseASTVisitor<S, E> visitor) throws E {

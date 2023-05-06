@@ -76,6 +76,7 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
             }
         for (Node dec : n.declist) visit(dec);
         visit(n.exp);
+        n.setType(new ArrowTypeNode(parTypes, n.retType));
         //rimuovere la hashmap corrente poiche' esco dallo scope
         symbolTable.remove(nestingLevel--);
         decOffset = prevNLDecOffset; // restores counter for offset of declarations at previous nesting level
