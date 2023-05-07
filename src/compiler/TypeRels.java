@@ -35,6 +35,10 @@ public class TypeRels {
                 || isMethodOverride(a, b);
     }
 
+    public static boolean isSupertype(TypeNode a, TypeNode b) {
+        return isSubtype(b, a);
+    }
+
     private static boolean isMethodOverride(TypeNode a, TypeNode b) {
         if (!(a instanceof ArrowTypeNode aRefTypeNode) || !(b instanceof ArrowTypeNode bRefTypeNode)) {
             return false;
@@ -47,7 +51,7 @@ public class TypeRels {
 
         // Contravariance of parameters
         for (int i = 0; i < aRefTypeNode.parlist.size(); i++) {
-            if (!isSubtype(bRefTypeNode.parlist.get(i), aRefTypeNode.parlist.get(i))) {
+            if (!isSupertype(aRefTypeNode.parlist.get(i), bRefTypeNode.parlist.get(i))) {
                 return false;
             }
         }
@@ -61,14 +65,8 @@ public class TypeRels {
             return false;
         }
 
-        final String aType = aRefTypeNode.typeId;
-        final String bType = bRefTypeNode.typeId;
-
-        if (aType.equals(bType)) {
-            return true;
-        }
-
-        return superTypes(aType).anyMatch(bType::equals);
+        return superTypes(aRefTypeNode.typeId)
+                .anyMatch(bRefTypeNode.typeId::equals);
 
     }
 
@@ -80,9 +78,4 @@ public class TypeRels {
         return ((a instanceof BoolTypeNode) && (b instanceof IntTypeNode | b instanceof BoolTypeNode))
                 || ((a instanceof IntTypeNode) && (b instanceof IntTypeNode));
     }
-
-    private static boolean isEqual(TypeNode a, TypeNode b) {
-        return a.getClass().equals(b.getClass());
-    }
-
 }

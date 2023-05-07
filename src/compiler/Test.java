@@ -19,7 +19,7 @@ import java.io.FileWriter;
 public class Test {
     public static void main(String[] args) throws Exception {
 
-        String fileName = "examples/bankloan.fool";
+        String fileName = "examples/quicksort.fool";
 
         CharStream chars = CharStreams.fromFileName(fileName);
         FOOLLexer lexer = new FOOLLexer(chars);
