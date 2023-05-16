@@ -1,7 +1,5 @@
 package compiler;
 
-import org.junit.jupiter.api.Test;
-
 import static compiler.CodeUtils.*;
 import static org.antlr.v4.runtime.CharStreams.fromString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -47,14 +45,14 @@ public class EASTGenerationTest {
     @Test
     void testClassDec() {
         final var progNode = getProgLetInNodeFromEAST(fromString(BASE_CLASS_CODE));
-        assertEquals(1, progNode.decList.size());
-        assertEquals(AST.ClassNode.class, progNode.decList.get(0).getClass());
+        assertEquals(1, progNode.declarations.size());
+        assertEquals(AST.ClassNode.class, progNode.declarations.get(0).getClass());
     }
 
     @Test
     void testClassAttribute() {
         final var progNode = getProgLetInNodeFromEAST(fromString(BASE_CLASS_CODE));
-        final var classNode = (AST.ClassNode) progNode.decList.get(0);
+        final var classNode = (AST.ClassNode) progNode.declarations.get(0);
         assertEquals(1, classNode.fields.size());
         assertEquals(AST.FieldNode.class, classNode.fields.get(0).getClass());
 
@@ -65,7 +63,7 @@ public class EASTGenerationTest {
     @Test
     void testClassMultipleFields() {
         final var progNode = getProgLetInNodeFromEAST(fromString(BASE_CLASS_CODE_WITH_TWO_FIELDS));
-        final var classNode = (AST.ClassNode) progNode.decList.get(0);
+        final var classNode = (AST.ClassNode) progNode.declarations.get(0);
         assertEquals(2, classNode.fields.size());
         assertEquals(AST.FieldNode.class, classNode.fields.get(0).getClass());
         assertEquals(AST.FieldNode.class, classNode.fields.get(1).getClass());
@@ -80,7 +78,7 @@ public class EASTGenerationTest {
     @Test
     void testClassMethods() {
         final var progNode = getProgLetInNodeFromEAST(fromString(BASE_CLASS_CODE));
-        final var classNode = (AST.ClassNode) progNode.decList.get(0);
+        final var classNode = (AST.ClassNode) progNode.declarations.get(0);
         assertEquals(1, classNode.methods.size());
         assertEquals(AST.MethodNode.class, classNode.methods.get(0).getClass());
 
@@ -91,7 +89,7 @@ public class EASTGenerationTest {
     @Test
     void testClassMultipleMethods() {
         final var progNode = getProgLetInNodeFromEAST(fromString(BASE_CLASS_CODE_WITH_TWO_METHODS));
-        final var classNode = (AST.ClassNode) progNode.decList.get(0);
+        final var classNode = (AST.ClassNode) progNode.declarations.get(0);
         assertEquals(2, classNode.methods.size());
         assertEquals(AST.MethodNode.class, classNode.methods.get(0).getClass());
         assertEquals(AST.MethodNode.class, classNode.methods.get(1).getClass());
@@ -117,10 +115,10 @@ public class EASTGenerationTest {
                     true;
                 """;
         final var progNode = getProgLetInNodeFromEAST(fromString(code));
-        assertEquals(2, progNode.decList.size());
+        assertEquals(2, progNode.declarations.size());
 
-        final var classNode = (AST.ClassNode) progNode.decList.get(0);
-        final var classNode2 = (AST.ClassNode) progNode.decList.get(1);
+        final var classNode = (AST.ClassNode) progNode.declarations.get(0);
+        final var classNode2 = (AST.ClassNode) progNode.declarations.get(1);
 
         assertTrue(classNode2.superId.isPresent());
         assertEquals("Account", classNode2.superId.get());
@@ -144,10 +142,10 @@ public class EASTGenerationTest {
                     true;
                 """;
         final var progNode = getProgLetInNodeFromEAST(fromString(code));
-        assertEquals(2, progNode.decList.size());
+        assertEquals(2, progNode.declarations.size());
 
-        final var classNode = (AST.ClassNode) progNode.decList.get(0);
-        final var classNode2 = (AST.ClassNode) progNode.decList.get(1);
+        final var classNode = (AST.ClassNode) progNode.declarations.get(0);
+        final var classNode2 = (AST.ClassNode) progNode.declarations.get(1);
 
         assertTrue(classNode2.superId.isPresent());
         assertEquals("Account", classNode2.superId.get());

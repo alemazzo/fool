@@ -1,7 +1,6 @@
 package compiler;
 
 import compiler.AST.*;
-import org.junit.jupiter.api.Test;
 
 import static compiler.CodeUtils.*;
 import static org.antlr.v4.runtime.CharStreams.fromString;
@@ -28,8 +27,8 @@ public class ASTGenerationTest {
         final var funCode = "let fun f:int (x:int) = x; in print(f(1));";
         final ProgLetInNode progLetInNode = getProgLetInNodeFromAST(fromString(funCode));
 
-        assertEquals(1, progLetInNode.decList.size());
-        assertEquals(FunNode.class, progLetInNode.decList.get(0).getClass());
+        assertEquals(1, progLetInNode.declarations.size());
+        assertEquals(FunNode.class, progLetInNode.declarations.get(0).getClass());
     }
 
     @Test
@@ -37,23 +36,23 @@ public class ASTGenerationTest {
         final var parCode = "let fun f:int (x:int) = x; in print(f(1));";
         final ProgLetInNode progLetInNode = getProgLetInNodeFromAST(fromString(parCode));
 
-        assertEquals(1, progLetInNode.decList.size());
-        assertEquals(FunNode.class, progLetInNode.decList.get(0).getClass());
+        assertEquals(1, progLetInNode.declarations.size());
+        assertEquals(FunNode.class, progLetInNode.declarations.get(0).getClass());
 
-        final FunNode funNode = (FunNode) progLetInNode.decList.get(0);
-        assertEquals(1, funNode.parlist.size());
-        assertEquals(ParNode.class, funNode.parlist.get(0).getClass());
-        assertEquals("x", funNode.parlist.get(0).id);
+        final FunNode funNode = (FunNode) progLetInNode.declarations.get(0);
+        assertEquals(1, funNode.parameters.size());
+        assertEquals(ParNode.class, funNode.parameters.get(0).getClass());
+        assertEquals("x", funNode.parameters.get(0).id);
     }
 
     @Test
     void testVarNode() {
         final var varCode = "let var x:int = 1; in print(x);";
         final ProgLetInNode progLetInNode = getProgLetInNodeFromAST(fromString(varCode));
-        assertEquals(1, progLetInNode.decList.size());
-        assertEquals(VarNode.class, progLetInNode.decList.get(0).getClass());
+        assertEquals(1, progLetInNode.declarations.size());
+        assertEquals(VarNode.class, progLetInNode.declarations.get(0).getClass());
 
-        final VarNode varNode = (VarNode) progLetInNode.decList.get(0);
+        final VarNode varNode = (VarNode) progLetInNode.declarations.get(0);
         assertEquals("x", varNode.id);
     }
 
@@ -82,10 +81,10 @@ public class ASTGenerationTest {
     void testIdNode() {
         final var idCode = "let var x:int = 1; in print(x);";
         final ProgLetInNode progLetInNode = getProgLetInNodeFromAST(fromString(idCode));
-        assertEquals(1, progLetInNode.decList.size());
-        assertEquals(VarNode.class, progLetInNode.decList.get(0).getClass());
+        assertEquals(1, progLetInNode.declarations.size());
+        assertEquals(VarNode.class, progLetInNode.declarations.get(0).getClass());
 
-        final VarNode varNode = (VarNode) progLetInNode.decList.get(0);
+        final VarNode varNode = (VarNode) progLetInNode.declarations.get(0);
         assertEquals("x", varNode.id);
 
         final PrintNode printNode = (PrintNode) progLetInNode.exp;
@@ -102,7 +101,7 @@ public class ASTGenerationTest {
         assertEquals(BoolNode.class, progNode.exp.getClass());
 
         final BoolNode boolNode = (BoolNode) progNode.exp;
-        assertEquals(true, boolNode.val);
+        assertEquals(true, boolNode.value);
     }
 
     @Test
@@ -112,7 +111,7 @@ public class ASTGenerationTest {
         assertEquals(IntNode.class, progNode.exp.getClass());
 
         final IntNode intNode = (IntNode) progNode.exp;
-        assertEquals(1, intNode.val);
+        assertEquals(1, intNode.value);
     }
 
     @Test
@@ -126,7 +125,7 @@ public class ASTGenerationTest {
 
         final CallNode callNode = (CallNode) printNode.exp;
         assertEquals("f", callNode.id);
-        assertEquals(1, callNode.arglist.size());
+        assertEquals(1, callNode.arguments.size());
     }
 
     @Test

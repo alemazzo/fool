@@ -3,27 +3,51 @@ package compiler;
 import compiler.AST.*;
 import compiler.exc.VoidException;
 import compiler.lib.BaseASTVisitor;
-import compiler.lib.Node;
 import compiler.lib.TypeNode;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
 
+    /**
+     * The classTable is used to store the virtual table of each class
+     */
     private final Map<String, VirtualTable> classTable = new HashMap<>();
+
+    /**
+     * The symbolTable is used to store the symbol table of each scope
+     */
     private final List<Map<String, STentry>> symbolTable = new ArrayList<>();
+
     int stErrors = 0;
-    private int nestingLevel = 0; // current nesting level
-    private int decOffset = -2; // counter for offset of local declarations at current nesting level
+
+    /**
+     * The nestingLevel is used to keep track of the current nesting level
+     */
+    private int nestingLevel = 0;
+
+    /* counter for offset of local declarations at current nesting level */
+    private int decOffset = -2;
 
     SymbolTableASTVisitor() {
     }
 
-    SymbolTableASTVisitor(boolean debug) {
+    SymbolTableASTVisitor(final boolean debug) {
         super(true, debug);
-    } // enables print for debugging
+    }
 
-    private STentry stLookup(String id) {
+    /**
+     * Do a lookup in the symbol table for the given id.
+     * The lookup starts from the current nesting level and goes up
+     * until the first occurrence of id is found.
+     * If no entry is found, null is returned.
+     * If an entry is found, the entry is returned.
+     *
+     * @param id the id to look for
+     * @return the entry found or null
+     */
+    private STentry stLookup(final String id) {
         int j = nestingLevel;
         STentry entry = null;
         while (j >= 0 && entry == null)
@@ -31,158 +55,271 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
         return entry;
     }
 
+
+    /**
+     * Visit a ProgLetInNode.
+     * A new scope is created and the declarations are visited.
+     * Then the expression is visited.
+     * The scope is then removed.
+     *
+     * @param node the ProgLetInNode to visit
+     * @return null
+     */
     @Override
-    public Void visitNode(ProgLetInNode n) {
-        if (print) printNode(n);
-        Map<String, STentry> hm = new HashMap<>();
-        symbolTable.add(hm);
-        for (Node dec : n.decList) visit(dec);
-        visit(n.exp);
+    public Void visitNode(final ProgLetInNode node) {
+        if (print) printNode(node);
+        symbolTable.add(new HashMap<>());
+        node.declarations.forEach(this::visit);
+        visit(node.exp);
         symbolTable.remove(0);
         return null;
     }
 
+    /**
+     * Visit a ProgNode.
+     * The expression is visited.
+     *
+     * @param node the ProgNode to visit
+     * @return null
+     */
     @Override
-    public Void visitNode(ProgNode n) {
-        if (print) printNode(n);
-        visit(n.exp);
+    public Void visitNode(final ProgNode node) {
+        if (print) printNode(node);
+        visit(node.exp);
         return null;
     }
 
+
+    /**
+     * Visit a FunNode.
+     * Create the STentry for the function and add it to the current symbol table.
+     * Create a new scope for the function parameters and add them to the new symbol table.
+     * Then visit each function declarations and body and remove the scope.
+     *
+     * @param node the FunNode to visit
+     * @return null
+     */
     @Override
-    public Void visitNode(FunNode n) {
-        if (print) printNode(n);
-        Map<String, STentry> hm = symbolTable.get(nestingLevel);
-        List<TypeNode> parTypes = new ArrayList<>();
-        for (ParNode par : n.parlist) parTypes.add(par.getType());
-        STentry entry = new STentry(nestingLevel, new ArrowTypeNode(parTypes, n.retType), decOffset--);
-        //inserimento di ID nella symtable
-        if (hm.put(n.id, entry) != null) {
-            System.out.println("Fun id " + n.id + " at line " + n.getLine() + " already declared");
+    public Void visitNode(final FunNode node) {
+        if (print) printNode(node);
+
+        final Map<String, STentry> currentSymbolTable = symbolTable.get(nestingLevel);
+        final List<TypeNode> parametersTypes = node.parameters.stream()
+                .map(ParNode::getType)
+                .collect(Collectors.toList());
+        final ArrowTypeNode arrowTypeNode = new ArrowTypeNode(parametersTypes, node.returnType);
+        node.setType(arrowTypeNode);
+        final STentry entry = new STentry(nestingLevel, arrowTypeNode, decOffset--);
+
+        // inserimento di ID nella symtable
+        if (currentSymbolTable.put(node.id, entry) != null) {
+            System.out.println("Fun id " + node.id + " at line " + node.getLine() + " already declared");
             stErrors++;
         }
-        //creare una nuova hashmap per la symTable
+
+        // region Inner Scope for function parameters
+        // creare una nuova hashmap per la symTable
         nestingLevel++;
-        Map<String, STentry> hmn = new HashMap<>();
-        symbolTable.add(hmn);
-        int prevNLDecOffset = decOffset; // stores counter for offset of declarations at previous nesting level
-        decOffset = -2;
+        int prevDecOffset = decOffset; // stores counter for offset of declarations at previous nesting level
+        decOffset = -2; // reinitialize counter for offset of declarations at current nesting level
+        final Map<String, STentry> newSymbolTable = new HashMap<>();
+        symbolTable.add(newSymbolTable);
 
         int parOffset = 1;
-        for (ParNode par : n.parlist)
-            if (hmn.put(par.id, new STentry(nestingLevel, par.getType(), parOffset++)) != null) {
-                System.out.println("Par id " + par.id + " at line " + n.getLine() + " already declared");
+        for (ParNode par : node.parameters) {
+            final STentry parEntry = new STentry(nestingLevel, par.getType(), parOffset++);
+            if (newSymbolTable.put(par.id, parEntry) != null) {
+                System.out.println("Par id " + par.id + " at line " + node.getLine() + " already declared");
                 stErrors++;
             }
-        for (Node dec : n.declist) visit(dec);
-        visit(n.exp);
-        n.setType(new ArrowTypeNode(parTypes, n.retType));
-        //rimuovere la hashmap corrente poiche' esco dallo scope
-        symbolTable.remove(nestingLevel--);
-        decOffset = prevNLDecOffset; // restores counter for offset of declarations at previous nesting level
+        }
+        node.declarations.forEach(this::visit);
+        visit(node.exp);
+        // rimuovere la hashmap corrente poiche' esco dallo scope
+        symbolTable.remove(nestingLevel);
+        decOffset = prevDecOffset; // restores counter for offset of declarations at previous nesting level
+        nestingLevel--;
+        // endregion
         return null;
     }
 
+    /**
+     * Visit a VarNode.
+     * Create the STentry for the variable and add it to the current symbol table.
+     * Visit the expression.
+     *
+     * @param node the VarNode to visit
+     * @return null
+     */
     @Override
-    public Void visitNode(VarNode n) {
-        if (print) printNode(n);
-        visit(n.exp);
-        Map<String, STentry> hm = symbolTable.get(nestingLevel);
-        STentry entry = new STentry(nestingLevel, n.getType(), decOffset--);
-        //inserimento di ID nella symtable
-        if (hm.put(n.id, entry) != null) {
-            System.out.println("Var id " + n.id + " at line " + n.getLine() + " already declared");
+    public Void visitNode(final VarNode node) {
+        if (print) printNode(node);
+        visit(node.exp);
+        final Map<String, STentry> currentSymbolTable = symbolTable.get(nestingLevel);
+        final STentry entry = new STentry(nestingLevel, node.getType(), decOffset--);
+        // inserimento di ID nella symtable
+        if (currentSymbolTable.put(node.id, entry) != null) {
+            System.out.println("Var id " + node.id + " at line " + node.getLine() + " already declared");
             stErrors++;
         }
         return null;
     }
 
+    /**
+     * Visit a PrintNode.
+     * Visit the expression.
+     *
+     * @param node the PrintNode to visit
+     * @return null
+     */
     @Override
-    public Void visitNode(PrintNode n) {
-        if (print) printNode(n);
-        visit(n.exp);
+    public Void visitNode(final PrintNode node) {
+        if (print) printNode(node);
+        visit(node.exp);
         return null;
     }
 
+    /**
+     * Visit an IfNode.
+     * Visit the condition, then branch and else branch.
+     *
+     * @param node the IfNode to visit
+     * @return null
+     */
     @Override
-    public Void visitNode(IfNode n) {
-        if (print) printNode(n);
-        visit(n.cond);
-        visit(n.th);
-        visit(n.el);
+    public Void visitNode(final IfNode node) {
+        if (print) printNode(node);
+        visit(node.condition);
+        visit(node.thenBranch);
+        visit(node.elseBranch);
         return null;
     }
 
+    /**
+     * Visit an EqualNode.
+     * Visit the left and right expression.
+     *
+     * @param node the EqualNode to visit
+     * @return null
+     */
     @Override
-    public Void visitNode(EqualNode n) {
-        if (print) printNode(n);
-        visit(n.left);
-        visit(n.right);
+    public Void visitNode(final EqualNode node) {
+        if (print) printNode(node);
+        visit(node.left);
+        visit(node.right);
         return null;
     }
 
+    /**
+     * Visit a TimesNode.
+     * Visit the left and right expression.
+     *
+     * @param node the TimesNode to visit
+     * @return null
+     */
     @Override
-    public Void visitNode(TimesNode n) {
-        if (print) printNode(n);
-        visit(n.left);
-        visit(n.right);
+    public Void visitNode(final TimesNode node) {
+        if (print) printNode(node);
+        visit(node.left);
+        visit(node.right);
         return null;
     }
 
+    /**
+     * Visit a PlusNode.
+     * Visit the left and right expression.
+     *
+     * @param node the PlusNode to visit
+     * @return null
+     */
     @Override
-    public Void visitNode(PlusNode n) {
-        if (print) printNode(n);
-        visit(n.left);
-        visit(n.right);
+    public Void visitNode(final PlusNode node) {
+        if (print) printNode(node);
+        visit(node.left);
+        visit(node.right);
         return null;
     }
 
+    /**
+     * Visit a CallNode.
+     * Lookup the function in the symbol table and set the entry and nesting level.
+     * Visit the arguments.
+     *
+     * @param node the CallNode to visit
+     * @return null
+     */
     @Override
-    public Void visitNode(CallNode n) {
-        if (print) printNode(n);
-        STentry entry = stLookup(n.id);
+    public Void visitNode(final CallNode node) {
+        if (print) printNode(node);
+        final STentry entry = stLookup(node.id);
         if (entry == null) {
-            System.out.println("Fun id " + n.id + " at line " + n.getLine() + " not declared");
+            System.out.println("Fun id " + node.id + " at line " + node.getLine() + " not declared");
             stErrors++;
         } else {
-            n.entry = entry;
-            n.nl = nestingLevel;
+            node.entry = entry;
+            node.nestingLevel = nestingLevel;
         }
-        for (Node arg : n.arglist) visit(arg);
+        node.arguments.forEach(this::visit);
         return null;
     }
 
+    /**
+     * Visit a IdNode.
+     * Lookup the variable in the symbol table and set the entry and nesting level.
+     *
+     * @param node the IdNode to visit
+     * @return null
+     */
     @Override
-    public Void visitNode(IdNode n) {
-        if (print) printNode(n);
-        STentry entry = stLookup(n.id);
+    public Void visitNode(final IdNode node) {
+        if (print) printNode(node);
+        final STentry entry = stLookup(node.id);
         if (entry == null) {
-            System.out.println("Var or Par id " + n.id + " at line " + n.getLine() + " not declared");
+            System.out.println("Var or Par id " + node.id + " at line " + node.getLine() + " not declared");
             stErrors++;
         } else {
-            n.entry = entry;
-            n.nl = nestingLevel;
+            node.entry = entry;
+            node.nestingLevel = nestingLevel;
         }
         return null;
     }
 
+    /**
+     * Visit a BoolNode.
+     *
+     * @param node the BoolNode to visit
+     * @return null
+     */
     @Override
-    public Void visitNode(BoolNode n) {
-        if (print) printNode(n, n.val.toString());
+    public Void visitNode(final BoolNode node) {
+        if (print) printNode(node, node.value.toString());
         return null;
     }
 
+    /**
+     * Visit a IntNode.
+     *
+     * @param node the IntNode to visit
+     * @return null
+     */
     @Override
-    public Void visitNode(IntNode n) {
-        if (print) printNode(n, n.val.toString());
+    public Void visitNode(final IntNode node) {
+        if (print) printNode(node, node.value.toString());
         return null;
     }
 
+    /**
+     * Visit a MinusNode.
+     * Visit the left and right expression.
+     *
+     * @param node the MinusNode to visit
+     * @return null
+     */
     @Override
-    public Void visitNode(MinusNode n) {
-        if (print) printNode(n);
-        visit(n.left);
-        visit(n.right);
+    public Void visitNode(final MinusNode node) {
+        if (print) printNode(node);
+        visit(node.left);
+        visit(node.right);
         return null;
     }
 
@@ -192,50 +329,92 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
     // ******************
     // ******************
 
+    /**
+     * Visit a DivNode.
+     * Visit the left and right expression.
+     *
+     * @param node the DivNode to visit
+     * @return null
+     */
     @Override
-    public Void visitNode(DivNode n) {
-        if (print) printNode(n);
-        visit(n.left);
-        visit(n.right);
+    public Void visitNode(final DivNode node) {
+        if (print) printNode(node);
+        visit(node.left);
+        visit(node.right);
         return null;
     }
 
+    /**
+     * Visit a GreaterEqualNode.
+     * Visit the left and right expression.
+     *
+     * @param node the GreaterEqualNode to visit
+     * @return null
+     */
     @Override
-    public Void visitNode(GreaterEqualNode n) {
-        if (print) printNode(n);
-        visit(n.left);
-        visit(n.right);
+    public Void visitNode(final GreaterEqualNode node) {
+        if (print) printNode(node);
+        visit(node.left);
+        visit(node.right);
         return null;
     }
 
+    /**
+     * Visit a LessEqualNode.
+     * Visit the left and right expression.
+     *
+     * @param node the LessEqualNode to visit
+     * @return null
+     */
     @Override
-    public Void visitNode(LessEqualNode n) {
-        if (print) printNode(n);
-        visit(n.left);
-        visit(n.right);
+    public Void visitNode(final LessEqualNode node) {
+        if (print) printNode(node);
+        visit(node.left);
+        visit(node.right);
         return null;
     }
 
+    /**
+     * Visit a NotNode.
+     * Visit the expression.
+     *
+     * @param node the NotNode to visit
+     * @return null
+     */
     @Override
-    public Void visitNode(NotNode n) {
-        if (print) printNode(n);
-        visit(n.exp);
+    public Void visitNode(final NotNode node) {
+        if (print) printNode(node);
+        visit(node.exp);
         return null;
     }
 
+    /**
+     * Visit a OrNode.
+     * Visit the left and right expression.
+     *
+     * @param node the OrNode to visit
+     * @return null
+     */
     @Override
-    public Void visitNode(OrNode n) {
-        if (print) printNode(n);
-        visit(n.left);
-        visit(n.right);
+    public Void visitNode(final OrNode node) {
+        if (print) printNode(node);
+        visit(node.left);
+        visit(node.right);
         return null;
     }
 
+    /**
+     * Visit a AndNode.
+     * Visit the left and right expression.
+     *
+     * @param node the AndNode to visit
+     * @return null
+     */
     @Override
-    public Void visitNode(AndNode n) {
-        if (print) printNode(n);
-        visit(n.left);
-        visit(n.right);
+    public Void visitNode(final AndNode node) {
+        if (print) printNode(node);
+        visit(node.left);
+        visit(node.right);
         return null;
     }
 
@@ -247,8 +426,23 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
     // *************************
 
 
+    /**
+     * Visit a ClassNode.
+     * Check if the super class is declared and set the super entry.
+     * Create a new ClassTypeNode and set the super class fields and methods if present.
+     * Create the STentry and add it to the global symbol table.
+     * Create the Virtual Table inheriting the super class methods if present.
+     * Add the Virtual Table to the class table.
+     * Add the new symbol table for methods and fields.
+     * For each field, visit it and create the STentry, also enriching the classTypeNode.
+     * For each method, enrich the classTypeNode and visit it.
+     * Remove the symbol table for methods and fields and restore the nesting level.
+     *
+     * @param node the ClassNode to visit
+     * @return null
+     */
     @Override
-    public Void visitNode(ClassNode node) {
+    public Void visitNode(final ClassNode node) {
         if (print) printNode(node);
 
         ClassTypeNode tempClassTypeNode = new ClassTypeNode();
@@ -287,8 +481,8 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
             virtualTable.putAll(superClassVirtualTable);
         }
         classTable.put(node.classId, virtualTable);
-        symbolTable.add(virtualTable);
 
+        symbolTable.add(virtualTable);
         // Setting the field offset
         nestingLevel++;
         int fieldOffset = -1;
@@ -309,6 +503,7 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
             } else {
                 visitedClassNames.add(field.fieldId);
             }
+            visit(field);
 
             STentry fieldEntry = new STentry(nestingLevel, field.getType(), fieldOffset--);
             final boolean isFieldOverridden = isSubClass && virtualTable.containsKey(field.fieldId);
@@ -362,8 +557,20 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
         return null;
     }
 
+    /**
+     * Visit a MethodNode.
+     * Create the MethodTypeNode and the STentry adding it to the symbol table.
+     * If the method is overriding another method, check if the overriding is correct.
+     * Create the new SymbolTable for the method scope.
+     * For each parameter, create the STentry and add it to the symbol table.
+     * Visit the declarations and the expression.
+     * Finally, remove the method scope from the symbol table.
+     *
+     * @param node the MethodNode to visit
+     * @return null
+     */
     @Override
-    public Void visitNode(MethodNode node) {
+    public Void visitNode(final MethodNode node) {
         if (print) printNode(node);
         final Map<String, STentry> currentTable = symbolTable.get(nestingLevel);
         final List<TypeNode> params = node.params.stream()
@@ -413,8 +620,22 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
         return null;
     }
 
+    /**
+     * Visit a ClassCallNode.
+     * Check if the object id was declared doing a lookup in the symbol table.
+     * If the object id was not declared, print an error.
+     * If the object id was declared, check if the type is a RefTypeNode.
+     * If the type is not a RefTypeNode, print an error.
+     * If the type is a RefTypeNode, check if the method id is in the virtual table.
+     * If the method id is not in the virtual table, print an error.
+     * If the method id is in the virtual table, set the entry and the nesting level of the node.
+     * Finally, visit the arguments.
+     *
+     * @param node the ClassCallNode to visit
+     * @return null
+     */
     @Override
-    public Void visitNode(ClassCallNode node) {
+    public Void visitNode(final ClassCallNode node) {
         if (print) printNode(node);
         final STentry entry = stLookup(node.objectId);
         if (entry == null) {
@@ -440,8 +661,18 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
         return null;
     }
 
+    /**
+     * Visit a NewNode.
+     * Check if the class id was declared doing a lookup in the class table.
+     * If the class id was not declared, print an error.
+     * If the class id was declared, set the entry of the node.
+     * Finally, visit the arguments.
+     *
+     * @param node the NewNode to visit
+     * @return null
+     */
     @Override
-    public Void visitNode(NewNode node) {
+    public Void visitNode(final NewNode node) {
         if (print) printNode(node);
         if (!classTable.containsKey(node.classId)) {
             System.out.println("Class id " + node.classId + " was not declared");
@@ -452,8 +683,16 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
         return null;
     }
 
+    /**
+     * Visit a RefTypeNode.
+     * Check if the type id was declared doing a lookup in the class table.
+     * If the type id was not declared, print an error.
+     *
+     * @param node the RefTypeNode to visit
+     * @return null
+     */
     @Override
-    public Void visitNode(RefTypeNode node) {
+    public Void visitNode(final RefTypeNode node) {
         if (print) printNode(node);
         if (!this.classTable.containsKey(node.typeId)) {
             System.out.println("Class with id: " + node.typeId + " on line: " + node.getLine() + " was not declared");
@@ -462,36 +701,71 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
         return null;
     }
 
+    /**
+     * Visit a FieldNode.
+     *
+     * @param node the FieldNode to visit
+     * @return null
+     */
     @Override
-    public Void visitNode(FieldNode node) {
+    public Void visitNode(final FieldNode node) {
         if (print) printNode(node);
         return null;
     }
 
+    /**
+     * Visit an EmptyNode.
+     *
+     * @param node the EmptyNode to visit
+     * @return null
+     */
     @Override
-    public Void visitNode(EmptyNode n) {
-        if (print) printNode(n);
+    public Void visitNode(final EmptyNode node) {
+        if (print) printNode(node);
         return null;
     }
 
+    /**
+     * Visit a ClassTypeNode.
+     *
+     * @param node the ClassTypeNode to visit
+     * @return null
+     */
     @Override
-    public Void visitNode(ClassTypeNode n) {
-        if (print) printNode(n);
+    public Void visitNode(final ClassTypeNode node) {
+        if (print) printNode(node);
         return null;
     }
 
+    /**
+     * Visit a MethodTypeNode.
+     *
+     * @param node the MethodTypeNode to visit
+     * @return null
+     */
     @Override
-    public Void visitNode(MethodTypeNode n) {
-        if (print) printNode(n);
+    public Void visitNode(final MethodTypeNode node) {
+        if (print) printNode(node);
         return null;
     }
 
+    /**
+     * Visit an EmptyTypeNode.
+     *
+     * @param node the EmptyTypeNode to visit
+     * @return null
+     */
     @Override
-    public Void visitNode(EmptyTypeNode n) {
-        if (print) printNode(n);
+    public Void visitNode(final EmptyTypeNode node) {
+        if (print) printNode(node);
         return null;
     }
 
+    /**
+     * The VirtualTable class.
+     * It is a Map that maps a method id to a STentry.
+     * This is used as an alias for the HashMap<String, STentry> class.
+     */
     static class VirtualTable extends HashMap<String, STentry> {
     }
 

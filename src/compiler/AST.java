@@ -13,11 +13,11 @@ import java.util.Optional;
 public class AST {
 
     public static class ProgLetInNode extends Node {
-        final List<DecNode> decList;
+        final List<DecNode> declarations;
         final Node exp;
 
-        ProgLetInNode(final List<DecNode> decList, final Node exp) {
-            this.decList = Collections.unmodifiableList(decList);
+        ProgLetInNode(final List<DecNode> declarations, final Node exp) {
+            this.declarations = Collections.unmodifiableList(declarations);
             this.exp = exp;
         }
 
@@ -42,21 +42,21 @@ public class AST {
 
     public static class FunNode extends DecNode {
         final String id;
-        final TypeNode retType;
-        final List<ParNode> parlist;
-        final List<DecNode> declist;
+        final TypeNode returnType;
+        final List<ParNode> parameters;
+        final List<DecNode> declarations;
         final Node exp;
 
-        FunNode(String i, TypeNode rt, List<ParNode> pl, List<DecNode> dl, Node e) {
-            id = i;
-            retType = rt;
-            parlist = Collections.unmodifiableList(pl);
-            declist = Collections.unmodifiableList(dl);
-            exp = e;
+        FunNode(final String id, final TypeNode returnType, final List<ParNode> parameters, final List<DecNode> declarations, final Node exp) {
+            this.id = id;
+            this.returnType = returnType;
+            this.parameters = Collections.unmodifiableList(parameters);
+            this.declarations = Collections.unmodifiableList(declarations);
+            this.exp = exp;
         }
 
-        void setType(TypeNode t) {
-            type = t;
+        void setType(final TypeNode type) {
+            this.type = type;
         }
 
         @Override
@@ -68,9 +68,9 @@ public class AST {
     public static class ParNode extends DecNode {
         final String id;
 
-        ParNode(String i, TypeNode t) {
-            id = i;
-            type = t;
+        ParNode(final String id, final TypeNode type) {
+            this.id = id;
+            this.type = type;
         }
 
         @Override
@@ -83,10 +83,10 @@ public class AST {
         final String id;
         final Node exp;
 
-        VarNode(String i, TypeNode t, Node v) {
-            id = i;
-            type = t;
-            exp = v;
+        VarNode(final String id, final TypeNode type, final Node exp) {
+            this.id = id;
+            this.type = type;
+            this.exp = exp;
         }
 
         @Override
@@ -98,8 +98,8 @@ public class AST {
     public static class PrintNode extends Node {
         final Node exp;
 
-        PrintNode(Node e) {
-            exp = e;
+        PrintNode(final Node exp) {
+            this.exp = exp;
         }
 
         @Override
@@ -109,14 +109,14 @@ public class AST {
     }
 
     public static class IfNode extends Node {
-        final Node cond;
-        final Node th;
-        final Node el;
+        final Node condition;
+        final Node thenBranch;
+        final Node elseBranch;
 
-        IfNode(Node c, Node t, Node e) {
-            cond = c;
-            th = t;
-            el = e;
+        IfNode(final Node condition, final Node thenBranch, final Node elseBranch) {
+            this.condition = condition;
+            this.thenBranch = thenBranch;
+            this.elseBranch = elseBranch;
         }
 
         @Override
@@ -129,9 +129,9 @@ public class AST {
         final Node left;
         final Node right;
 
-        EqualNode(Node l, Node r) {
-            left = l;
-            right = r;
+        EqualNode(final Node left, final Node right) {
+            this.left = left;
+            this.right = right;
         }
 
         @Override
@@ -144,10 +144,10 @@ public class AST {
 
         final String id;
         STentry entry;
-        int nl;
+        int nestingLevel;
 
-        IdNode(String i) {
-            id = i;
+        IdNode(final String id) {
+            this.id = id;
         }
 
         @Override
@@ -159,10 +159,10 @@ public class AST {
 
     public static class BoolNode extends Node {
 
-        final Boolean val;
+        final Boolean value;
 
-        BoolNode(boolean n) {
-            val = n;
+        BoolNode(final boolean value) {
+            this.value = value;
         }
 
         @Override
@@ -174,10 +174,10 @@ public class AST {
 
     public static class IntNode extends Node {
 
-        final Integer val;
+        final Integer value;
 
-        IntNode(Integer n) {
-            val = n;
+        IntNode(final Integer value) {
+            this.value = value;
         }
 
         @Override
@@ -189,12 +189,12 @@ public class AST {
 
     public static class ArrowTypeNode extends TypeNode {
 
-        final List<TypeNode> parlist;
-        final TypeNode ret;
+        final List<TypeNode> parameters;
+        final TypeNode returnType;
 
-        ArrowTypeNode(List<TypeNode> p, TypeNode r) {
-            parlist = Collections.unmodifiableList(p);
-            ret = r;
+        ArrowTypeNode(final List<TypeNode> parameters, final TypeNode returnType) {
+            this.parameters = Collections.unmodifiableList(parameters);
+            this.returnType = returnType;
         }
 
         @Override
@@ -225,13 +225,13 @@ public class AST {
 
     public static class CallNode extends Node {
         final String id;
-        final List<Node> arglist;
+        final List<Node> arguments;
         STentry entry;
-        int nl;
+        int nestingLevel;
 
-        CallNode(String i, List<Node> p) {
-            id = i;
-            arglist = Collections.unmodifiableList(p);
+        CallNode(final String id, final List<Node> arguments) {
+            this.id = id;
+            this.arguments = Collections.unmodifiableList(arguments);
         }
 
         @Override
@@ -242,12 +242,11 @@ public class AST {
 
     public static class GreaterEqualNode extends Node {
         final Node left;
-
         final Node right;
 
-        GreaterEqualNode(Node l, Node r) {
-            left = l;
-            right = r;
+        GreaterEqualNode(final Node left, final Node right) {
+            this.left = left;
+            this.right = right;
         }
 
         @Override
@@ -259,12 +258,11 @@ public class AST {
 
     public static class LessEqualNode extends Node {
         final Node left;
-
         final Node right;
 
-        LessEqualNode(Node l, Node r) {
-            left = l;
-            right = r;
+        LessEqualNode(final Node left, final Node right) {
+            this.left = left;
+            this.right = right;
         }
 
         @Override
@@ -275,12 +273,10 @@ public class AST {
     }
 
     public static class NotNode extends Node {
-
-
         final Node exp;
 
-        NotNode(Node e) {
-            exp = e;
+        NotNode(final Node exp) {
+            this.exp = exp;
         }
 
         @Override
@@ -292,12 +288,11 @@ public class AST {
 
     public static class OrNode extends Node {
         final Node left;
-
         final Node right;
 
-        OrNode(Node l, Node r) {
-            left = l;
-            right = r;
+        OrNode(final Node left, final Node right) {
+            this.left = left;
+            this.right = right;
         }
 
         @Override
@@ -309,12 +304,11 @@ public class AST {
 
     public static class AndNode extends Node {
         final Node left;
-
         final Node right;
 
-        AndNode(Node l, Node r) {
-            left = l;
-            right = r;
+        AndNode(final Node left, final Node right) {
+            this.left = left;
+            this.right = right;
         }
 
         @Override
@@ -326,12 +320,11 @@ public class AST {
 
     public static class TimesNode extends Node {
         final Node left;
-
         final Node right;
 
-        TimesNode(Node l, Node r) {
-            left = l;
-            right = r;
+        TimesNode(final Node left, final Node right) {
+            this.left = left;
+            this.right = right;
         }
 
         @Override
@@ -342,14 +335,12 @@ public class AST {
     }
 
     public static class DivNode extends Node {
-
         final Node left;
-
         final Node right;
 
-        DivNode(Node l, Node r) {
-            left = l;
-            right = r;
+        DivNode(final Node left, final Node right) {
+            this.left = left;
+            this.right = right;
         }
 
         @Override
@@ -361,12 +352,11 @@ public class AST {
 
     public static class PlusNode extends Node {
         final Node left;
-
         final Node right;
 
-        PlusNode(Node l, Node r) {
-            left = l;
-            right = r;
+        PlusNode(final Node left, final Node right) {
+            this.left = left;
+            this.right = right;
         }
 
         @Override
@@ -377,14 +367,12 @@ public class AST {
     }
 
     public static class MinusNode extends Node {
-
         final Node left;
-
         final Node right;
 
-        MinusNode(Node l, Node r) {
-            left = l;
-            right = r;
+        MinusNode(final Node left, final Node right) {
+            this.left = left;
+            this.right = right;
         }
 
         @Override
@@ -408,7 +396,7 @@ public class AST {
         ClassTypeNode type;
         STentry superEntry;
 
-        public ClassNode(String classId, Optional<String> superId, List<FieldNode> fields, List<MethodNode> methods) {
+        public ClassNode(final String classId, final Optional<String> superId, final List<FieldNode> fields, final List<MethodNode> methods) {
             this.classId = classId;
             this.superId = superId;
             this.fields = fields;
@@ -427,7 +415,7 @@ public class AST {
         final String fieldId;
         int offset;
 
-        public FieldNode(String fieldId, TypeNode type) {
+        public FieldNode(final String fieldId, final TypeNode type) {
             this.fieldId = fieldId;
             this.type = type;
         }
@@ -450,7 +438,7 @@ public class AST {
 
         String label;
 
-        public MethodNode(String methodId, TypeNode returnType, List<ParNode> params, List<DecNode> declarations, Node exp) {
+        public MethodNode(final String methodId, final TypeNode returnType, final List<ParNode> params, final List<DecNode> declarations, final Node exp) {
             this.methodId = methodId;
             this.returnType = returnType;
             this.params = params;
@@ -475,7 +463,7 @@ public class AST {
         STentry entry;
         STentry methodEntry;
 
-        public ClassCallNode(String objectId, String methodId, List<Node> args) {
+        public ClassCallNode(final String objectId, final String methodId, final List<Node> args) {
             this.objectId = objectId;
             this.methodId = methodId;
             this.args = args;
@@ -494,7 +482,7 @@ public class AST {
         final List<Node> args;
         STentry entry;
 
-        public NewNode(String classId, List<Node> args) {
+        public NewNode(final String classId, final List<Node> args) {
             this.classId = classId;
             this.args = args;
         }
@@ -520,12 +508,12 @@ public class AST {
         final List<TypeNode> fields;
         final List<ArrowTypeNode> methods;
 
-        public ClassTypeNode(List<TypeNode> fields, List<ArrowTypeNode> methods) {
+        public ClassTypeNode(final List<TypeNode> fields, final List<ArrowTypeNode> methods) {
             this.fields = new ArrayList<>(fields);
             this.methods = new ArrayList<>(methods);
         }
 
-        public ClassTypeNode(ClassTypeNode parent) {
+        public ClassTypeNode(final ClassTypeNode parent) {
             this(parent.fields, parent.methods);
         }
 
@@ -544,7 +532,7 @@ public class AST {
 
         final ArrowTypeNode functionalType;
 
-        public MethodTypeNode(ArrowTypeNode functionalType) {
+        public MethodTypeNode(final ArrowTypeNode functionalType) {
             this.functionalType = functionalType;
         }
 
@@ -559,7 +547,7 @@ public class AST {
 
         final String typeId;
 
-        public RefTypeNode(String typeId) {
+        public RefTypeNode(final String typeId) {
             this.typeId = typeId;
         }
 

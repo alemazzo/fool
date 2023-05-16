@@ -14,7 +14,7 @@ public class PrintEASTVisitor extends BaseEASTVisitor<Void, VoidException> {
     @Override
     public Void visitNode(ProgLetInNode n) {
         printNode(n);
-        for (Node dec : n.decList) visit(dec);
+        for (Node dec : n.declarations) visit(dec);
         visit(n.exp);
         return null;
     }
@@ -29,9 +29,9 @@ public class PrintEASTVisitor extends BaseEASTVisitor<Void, VoidException> {
     @Override
     public Void visitNode(FunNode n) {
         printNode(n, n.id);
-        visit(n.retType);
-        for (ParNode par : n.parlist) visit(par);
-        for (Node dec : n.declist) visit(dec);
+        visit(n.returnType);
+        for (ParNode par : n.parameters) visit(par);
+        for (Node dec : n.declarations) visit(dec);
         visit(n.exp);
         return null;
     }
@@ -61,9 +61,9 @@ public class PrintEASTVisitor extends BaseEASTVisitor<Void, VoidException> {
     @Override
     public Void visitNode(IfNode n) {
         printNode(n);
-        visit(n.cond);
-        visit(n.th);
-        visit(n.el);
+        visit(n.condition);
+        visit(n.thenBranch);
+        visit(n.elseBranch);
         return null;
     }
 
@@ -148,36 +148,36 @@ public class PrintEASTVisitor extends BaseEASTVisitor<Void, VoidException> {
 
     @Override
     public Void visitNode(CallNode n) {
-        printNode(n, n.id + " at nestinglevel " + n.nl);
+        printNode(n, n.id + " at nestinglevel " + n.nestingLevel);
         visit(n.entry);
-        for (Node arg : n.arglist) visit(arg);
+        for (Node arg : n.arguments) visit(arg);
         return null;
     }
 
     @Override
     public Void visitNode(IdNode n) {
-        printNode(n, n.id + " at nestinglevel " + n.nl);
+        printNode(n, n.id + " at nestinglevel " + n.nestingLevel);
         visit(n.entry);
         return null;
     }
 
     @Override
     public Void visitNode(BoolNode n) {
-        printNode(n, n.val.toString());
+        printNode(n, n.value.toString());
         return null;
     }
 
     @Override
     public Void visitNode(IntNode n) {
-        printNode(n, n.val.toString());
+        printNode(n, n.value.toString());
         return null;
     }
 
     @Override
     public Void visitNode(ArrowTypeNode n) {
         printNode(n);
-        for (Node par : n.parlist) visit(par);
-        visit(n.ret, "->"); //marks return type
+        for (Node par : n.parameters) visit(par);
+        visit(n.returnType, "->"); //marks return type
         return null;
     }
 
@@ -266,8 +266,8 @@ public class PrintEASTVisitor extends BaseEASTVisitor<Void, VoidException> {
     @Override
     public Void visitNode(MethodTypeNode n) throws VoidException {
         printNode(n);
-        for (Node par : n.functionalType.parlist) visit(par);
-        visit(n.functionalType.ret, "->"); //marks return type
+        for (Node par : n.functionalType.parameters) visit(par);
+        visit(n.functionalType.returnType, "->"); //marks return type
         return null;
     }
 
