@@ -129,7 +129,7 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
                         STORE_FP, // set $fp to popped value (Control Link)
                         LOAD_TM, // load $tm value (function result)
                         LOAD_RA, // load $ra value
-                        JUMP // jump to popped address
+                        JUMP_STACK // jump to popped address
                 )
         );
         return PUSH + funLabel;
@@ -327,7 +327,7 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
                     PUSH + node.entry.offset,
                     ADD, // compute address of "id" declaration
                     LOAD_WORD, // load address of "id" function
-                    JUMP  // jump to popped address (saving address of subsequent instruction in $ra)
+                    JUMP_STACK  // jump to popped address (saving address of subsequent instruction in $ra)
             );
         } else {
             return nlJoin(
@@ -342,7 +342,7 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
                     PUSH + node.entry.offset,
                     ADD, // compute address of "id" declaration
                     LOAD_WORD, // load address of "id" function
-                    JUMP  // jump to popped address (saving address of subsequent instruction in $ra)
+                    JUMP_STACK  // jump to popped address (saving address of subsequent instruction in $ra)
             );
         }
     }
@@ -781,7 +781,7 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
                         STORE_FP,
                         LOAD_TM,
                         LOAD_RA,
-                        JUMP
+                        JUMP_STACK
                 )
         );
 
@@ -845,7 +845,7 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
                 ADD,
 
                 LOAD_WORD,
-                JUMP
+                JUMP_STACK
         );
 
     }
@@ -925,31 +925,138 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
 
     static class Instructions {
 
+        /**
+         * Stop the execution of the program.
+         */
         static final String HALT = "halt";
+
+        /**
+         * Print the value on top of the stack.
+         */
         static final String PRINT = "print";
+
+        /**
+         * Push the value on the top of the stack.
+         */
         static final String PUSH = "push "; // space needed for the argument
+
+        /**
+         * Pop the value on the top of the stack.
+         */
         static final String POP = "pop";
+
+        /**
+         * Add the two values on the top of the stack popping them.
+         * The result is pushed on the top of the stack.
+         */
         static final String ADD = "add";
+
+        /**
+         * Subtract the two values on the top of the stack popping them.
+         * The result is pushed on the top of the stack.
+         */
         static final String SUB = "sub";
+
+        /**
+         * Multiply the two values on the top of the stack popping them.
+         * The result is pushed on the top of the stack.
+         */
         static final String MULT = "mult";
+
+        /**
+         * Divide the two values on the top of the stack popping them.
+         * The result is pushed on the top of the stack.
+         */
         static final String DIV = "div";
 
+        /**
+         * Jump to the label passed as argument.
+         */
         static final String BRANCH = "b "; // space needed for the argument
+
+        /**
+         * Jump to the label passed as argument if the
+         * two values on the top of the stack are equal.
+         * <p>
+         * The two values are popped.
+         */
         static final String BRANCH_EQUAL = "beq "; // space needed for the argument
+
+        /**
+         * Jump to the label passed as argument if the
+         * first value on the top of the stack is less or
+         * equal than the second value on the top of the stack.
+         * <p>
+         * The two values are popped.
+         */
         static final String BRANCH_LESS_EQUAL = "ble "; // space needed for the argument
 
+        /**
+         * Push the value of FP on the top of the stack.
+         */
         static final String LOAD_FP = "lfp";
+
+        /**
+         * Pop the value on the top of the stack and
+         * store it in FP.
+         */
         static final String STORE_FP = "sfp";
+
+        /**
+         * Copy the value of SP in FP.
+         */
         static final String COPY_FP = "cfp";
+
+        /**
+         * Push the value of RA on the top of the stack.
+         */
         static final String LOAD_RA = "lra";
+
+        /**
+         * Pop the value on the top of the stack and
+         * store it in RA.
+         */
         static final String STORE_RA = "sra";
+
+        /**
+         * Push the value of TM on the top of the stack.
+         */
         static final String LOAD_TM = "ltm";
+
+        /**
+         * Pop the value on the top of the stack and
+         * store it in TM.
+         */
         static final String STORE_TM = "stm";
+
+        /**
+         * Push the value of HP on the top of the stack.
+         */
         static final String LOAD_HP = "lhp";
+
+        /**
+         * Pop the value on the top of the stack and
+         * store it in HP.
+         */
         static final String STORE_HP = "shp";
+
+        /**
+         * Pop the address on the top of the stack and
+         * push the value stored at that address.
+         */
         static final String LOAD_WORD = "lw";
+
+        /**
+         * Pop the address on the top of the stack and
+         * pop the value to store at that address.
+         */
         static final String STORE_WORD = "sw";
-        static final String JUMP = "js";
+
+        /**
+         * Set the RETURN ADDRESS to the actual INSTRUCTION POINTER.
+         * JUMP to the address on the top of the stack.
+         */
+        static final String JUMP_STACK = "js";
 
 
     }
