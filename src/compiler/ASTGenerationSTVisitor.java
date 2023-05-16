@@ -86,12 +86,10 @@ public class ASTGenerationSTVisitor extends FOOLBaseVisitor<Node> {
     public Node visitLetInProg(final LetInProgContext context) {
         if (print) printVarAndProdName(context);
         final List<DecNode> classDeclarations = context.cldec().stream()
-                .map(this::visit)
-                .map(x -> (DecNode) x)
+                .map(x -> (DecNode) visit(x))
                 .collect(Collectors.toList());
         final List<DecNode> declarations = context.dec().stream()
-                .map(this::visit)
-                .map(x -> (DecNode) x)
+                .map(x -> (DecNode) visit(x))
                 .collect(Collectors.toList());
         final List<DecNode> allDeclarations = new ArrayList<>();
         allDeclarations.addAll(classDeclarations);
@@ -449,8 +447,7 @@ public class ASTGenerationSTVisitor extends FOOLBaseVisitor<Node> {
                 .map(ParseTree::getText)
                 .toList();
         final List<TypeNode> fieldTypes = context.type().stream()
-                .map(this::visit)
-                .map(n -> (TypeNode) n)
+                .map(x -> (TypeNode) visit(x))
                 .toList();
         final List<FieldNode> fields = IntStream.range(0, fieldIds.size())
                 .mapToObj(i -> {
@@ -460,8 +457,7 @@ public class ASTGenerationSTVisitor extends FOOLBaseVisitor<Node> {
                 })
                 .toList();
         final List<MethodNode> methods = context.methdec().stream()
-                .map(this::visit)
-                .map(n -> (MethodNode) n)
+                .map(x -> (MethodNode) visit(x))
                 .toList();
         final ClassNode classNode = new ClassNode(classId, superId, fields, methods);
         classNode.setLine(context.ID(0).getSymbol().getLine());
@@ -488,8 +484,7 @@ public class ASTGenerationSTVisitor extends FOOLBaseVisitor<Node> {
                 })
                 .toList();
         final List<DecNode> declarations = context.dec().stream()
-                .map(this::visit)
-                .map(n -> (DecNode) n)
+                .map(x -> (DecNode) visit(x))
                 .toList();
         final Node exp = visit(context.exp());
         final MethodNode methodNode = new MethodNode(methodId, returnType, params, declarations, exp);
