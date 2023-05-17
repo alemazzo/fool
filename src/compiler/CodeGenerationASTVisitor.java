@@ -311,37 +311,40 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
         }
 
         if (node.entry.type instanceof MethodTypeNode methodTypeNode) {
+            System.out.println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
             return nlJoin(
                     LOAD_FP, // load Control Link (pointer to frame of function "id" caller)
+
                     argumentsCode, // generate code for argument expressions in reversed order
-                    LOAD_FP,
-                    getARCode, // retrieve address of frame containing "id" declaration
+
+                    LOAD_FP, getARCode, // retrieve address of frame containing "id" declaration
                     // by following the static chain (of Access Links)
 
                     STORE_TM, // set $tm to popped value (with the aim of duplicating top of stack)
                     LOAD_TM, // load Access Link (pointer to frame of function "id" declaration)
+
                     LOAD_TM, // duplicate top of stack
-
-                    LOAD_WORD,
-
-                    PUSH + node.entry.offset,
+                    LOAD_WORD, // Get AL
+                    PUSH + node.entry.offset, // Get offset
                     ADD, // compute address of "id" declaration
                     LOAD_WORD, // load address of "id" function
+
                     JUMP_STACK  // jump to popped address (saving address of subsequent instruction in $ra)
             );
         } else {
             return nlJoin(
                     LOAD_FP, // load Control Link (pointer to frame of function "id" caller)
                     argumentsCode, // generate code for argument expressions in reversed order
-                    LOAD_FP,
-                    getARCode, // retrieve address of frame containing "id" declaration
+                    LOAD_FP, getARCode, // retrieve address of frame containing "id" declaration
                     // by following the static chain (of Access Links)
                     STORE_TM, // set $tm to popped value (with the aim of duplicating top of stack)
                     LOAD_TM, // load Access Link (pointer to frame of function "id" declaration)
+
                     LOAD_TM, // duplicate top of stack
                     PUSH + node.entry.offset,
                     ADD, // compute address of "id" declaration
                     LOAD_WORD, // load address of "id" function
+
                     JUMP_STACK  // jump to popped address (saving address of subsequent instruction in $ra)
             );
         }
@@ -365,7 +368,7 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
         if (print) printNode(node, node.id);
         String getARCode = null;
         for (int i = 0; i < node.nestingLevel - node.entry.nl; i++) {
-            getARCode = nlJoin(getARCode, "lw");
+            getARCode = nlJoin(getARCode, LOAD_WORD);
         }
         return nlJoin(
                 LOAD_FP, getARCode, // retrieve address of frame containing "id" declaration
@@ -695,10 +698,10 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
                     dispatchTableHeapCode,
 
                     PUSH + label,
-                    LOAD_HP,
+                    LOAD_HEAP_POINTER,
                     STORE_WORD,
 
-                    LOAD_HP,
+                    LOAD_HEAP_POINTER,
                     PUSH + 1,
                     ADD,
                     STORE_HP
@@ -706,7 +709,7 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
         }
 
         return nlJoin(
-                LOAD_HP,
+                LOAD_HEAP_POINTER,
                 dispatchTableHeapCode
         );
 
@@ -825,26 +828,23 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
         }
 
         return nlJoin(
-                LOAD_FP,
-                argumentsCode,
-                LOAD_FP,
-                getARCode,
+                LOAD_FP, // push $fp on the stack
+                argumentsCode, // push arguments on the stack
+                LOAD_FP, getARCode, // push $ar on the stack
 
-                PUSH + node.entry.offset,
-                ADD,
+                PUSH + node.entry.offset, // push class offset on the stack
+                ADD, // add class offset to $ar
+                LOAD_WORD, // load class address
 
-                LOAD_WORD,
+                STORE_TM, // set $tm to popped value (class address)
+                LOAD_TM, // push class address on the stack
 
-                STORE_TM,
-                LOAD_TM,
-                LOAD_TM,
+                LOAD_TM, // push class address on the stack
+                LOAD_WORD, // load dispatch table address
+                PUSH + node.methodEntry.offset, // push method offset on the stack
+                ADD, // add method offset to dispatch table address
+                LOAD_WORD, // load method address
 
-                LOAD_WORD,
-
-                PUSH + node.methodEntry.offset,
-                ADD,
-
-                LOAD_WORD,
                 JUMP_STACK
         );
 
@@ -880,9 +880,9 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
             );
             moveArgumentsOnHeapCode = nlJoin(
                     moveArgumentsOnHeapCode,
-                    LOAD_HP,
+                    LOAD_HEAP_POINTER,
                     STORE_WORD,
-                    LOAD_HP,
+                    LOAD_HEAP_POINTER,
                     PUSH + 1,
                     ADD,
                     STORE_HP
@@ -894,11 +894,11 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
                 moveArgumentsOnHeapCode,
                 PUSH + (ExecuteVM.MEMSIZE + node.entry.offset),
                 LOAD_WORD,
-                LOAD_HP,
+                LOAD_HEAP_POINTER,
                 STORE_WORD,
 
-                LOAD_HP,
-                LOAD_HP,
+                LOAD_HEAP_POINTER,
+                LOAD_HEAP_POINTER,
                 PUSH + 1,
                 ADD,
                 STORE_HP
@@ -989,7 +989,7 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
          * <p>
          * The two values are popped.
          */
-        static final String BRANCH_LESS_EQUAL = "ble "; // space needed for the argument
+        static final String BRANCH_LESS_EQUAL = "bleq "; // space needed for the argument
 
         /**
          * Push the value of FP on the top of the stack.
@@ -1032,7 +1032,7 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
         /**
          * Push the value of HP on the top of the stack.
          */
-        static final String LOAD_HP = "lhp";
+        static final String LOAD_HEAP_POINTER = "lhp";
 
         /**
          * Pop the value on the top of the stack and

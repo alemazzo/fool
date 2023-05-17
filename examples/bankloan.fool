@@ -9,7 +9,8 @@ let
   }
   
   class BankLoan (loan: Account) {
-    fun getLoan:Account () loan;
+    fun getLoan2:Account () loan;
+    fun getLoan:Account () getLoan2();
     fun openLoan:Account (m:TradingAcc) if ((m.getMon()+m.getInv())>=30000) 
       then {new Account(loan.getMon())} 
       else {null};

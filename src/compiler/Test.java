@@ -64,7 +64,7 @@ public class Test {
         if (frontEndErrors > 0) System.exit(1);
 
         System.out.println("Generating code.");
-        String code = new CodeGenerationASTVisitor().visit(ast);
+        String code = new CodeGenerationASTVisitor(true).visit(ast);
         BufferedWriter out = new BufferedWriter(new FileWriter(fileName + ".asm"));
         out.write(code);
         out.close();
