@@ -18,6 +18,10 @@ public class AST {
      *********************
      ******************* */
 
+    /**
+     * The root node of the AST.
+     * It contains a list of declarations and the main expression.
+     */
     public static class ProgLetInNode extends Node {
         final List<DecNode> declarations;
         final Node exp;
@@ -33,6 +37,10 @@ public class AST {
         }
     }
 
+    /**
+     * The root node of the AST.
+     * It contains the main expression.
+     */
     public static class ProgNode extends Node {
         final Node exp;
 
@@ -52,6 +60,11 @@ public class AST {
      *********************
      ******************* */
 
+    /**
+     * A function declaration node.
+     * It contains the function name, the return type, the list of parameters,
+     * the list of local declarations and the body expression.
+     */
     public static class FunNode extends DecNode {
         final String id;
         final TypeNode returnType;
@@ -77,6 +90,10 @@ public class AST {
         }
     }
 
+    /**
+     * A parameter declaration node.
+     * It contains the parameter id and type.
+     */
     public static class ParNode extends DecNode {
         final String id;
 
@@ -91,6 +108,10 @@ public class AST {
         }
     }
 
+    /**
+     * A variable declaration node.
+     * It contains the variable id, type and the initialization expression.
+     */
     public static class VarNode extends DecNode {
         final String id;
         final Node exp;
@@ -114,6 +135,10 @@ public class AST {
      *********************
      ******************* */
 
+    /**
+     * The node for the if then else expression.
+     * It contains the condition, the then branch and the else branch.
+     */
     public static class IfNode extends Node {
         final Node condition;
         final Node thenBranch;
@@ -131,6 +156,10 @@ public class AST {
         }
     }
 
+    /**
+     * The node for the not expression.
+     * It contains the expression to negate.
+     */
     public static class NotNode extends Node {
         final Node exp;
 
@@ -145,6 +174,10 @@ public class AST {
 
     }
 
+    /**
+     * The node for the or expression.
+     * It contains the left and right expression.
+     */
     public static class OrNode extends Node {
         final Node left;
         final Node right;
@@ -161,6 +194,10 @@ public class AST {
 
     }
 
+    /**
+     * The node for the and expression.
+     * It contains the left and right expression.
+     */
     public static class AndNode extends Node {
         final Node left;
         final Node right;
@@ -177,6 +214,10 @@ public class AST {
 
     }
 
+    /**
+     * The node for the equal expression.
+     * It contains the left and right expression.
+     */
     public static class EqualNode extends Node {
         final Node left;
         final Node right;
@@ -192,6 +233,10 @@ public class AST {
         }
     }
 
+    /**
+     * The node for the less equal expression.
+     * It contains the left and right expression.
+     */
     public static class LessEqualNode extends Node {
         final Node left;
         final Node right;
@@ -208,6 +253,10 @@ public class AST {
 
     }
 
+    /**
+     * The node for the greater equal expression.
+     * It contains the left and right expression.
+     */
     public static class GreaterEqualNode extends Node {
         final Node left;
         final Node right;
@@ -224,6 +273,10 @@ public class AST {
 
     }
 
+    /**
+     * The node for the times expression.
+     * It contains the left and right expression.
+     */
     public static class TimesNode extends Node {
         final Node left;
         final Node right;
@@ -240,6 +293,10 @@ public class AST {
 
     }
 
+    /**
+     * The node for the div expression.
+     * It contains the left and right expression.
+     */
     public static class DivNode extends Node {
         final Node left;
         final Node right;
@@ -256,6 +313,10 @@ public class AST {
 
     }
 
+    /**
+     * The node for the plus expression.
+     * It contains the left and right expression.
+     */
     public static class PlusNode extends Node {
         final Node left;
         final Node right;
@@ -272,6 +333,10 @@ public class AST {
 
     }
 
+    /**
+     * The node for the minus expression.
+     * It contains the left and right expression.
+     */
     public static class MinusNode extends Node {
         final Node left;
         final Node right;
@@ -293,6 +358,10 @@ public class AST {
      *********************
      ******************* */
 
+    /**
+     * The node for the bool value.
+     * It contains the boolean value.
+     */
     public static class BoolNode extends Node {
 
         final Boolean value;
@@ -308,6 +377,10 @@ public class AST {
 
     }
 
+    /**
+     * The node for the int value.
+     * It contains the integer value.
+     */
     public static class IntNode extends Node {
 
         final Integer value;
@@ -323,6 +396,11 @@ public class AST {
 
     }
 
+    /**
+     * The node for the Id value, that is a variable.
+     * It contains the id of the variable, the entry
+     * in the symbol table and the nesting level.
+     */
     public static class IdNode extends Node {
 
         final String id;
@@ -346,6 +424,10 @@ public class AST {
      *********************
      ******************* */
 
+    /**
+     * The node for the arrow type, that is a function.
+     * It contains the list of parameters and the return type.
+     */
     public static class ArrowTypeNode extends TypeNode {
 
         final List<TypeNode> parameters;
@@ -363,6 +445,9 @@ public class AST {
 
     }
 
+    /**
+     * The node for the bool type.
+     */
     public static class BoolTypeNode extends TypeNode {
 
         @Override
@@ -373,6 +458,9 @@ public class AST {
 
     }
 
+    /**
+     * The node for the int type.
+     */
     public static class IntTypeNode extends TypeNode {
 
         @Override
@@ -388,6 +476,10 @@ public class AST {
      *********************
      ******************* */
 
+    /**
+     * The node for the print operation.
+     * It contains the expression to print.
+     */
     public static class PrintNode extends Node {
         final Node exp;
 
@@ -401,6 +493,11 @@ public class AST {
         }
     }
 
+    /**
+     * The node for the function call.
+     * It contains the id of the function, the list of arguments,
+     * the entry in the symbol table and the nesting level.
+     */
     public static class CallNode extends Node {
         final String id;
         final List<Node> arguments;
@@ -431,6 +528,12 @@ public class AST {
      *********************
      ******************* */
 
+    /**
+     * The node for the declaration of a class.
+     * It contains the id of the class, the id of the super class,
+     * the list of fields and the list of methods.
+     * It also contains the type of the class and the entry of the super class.
+     */
     public static class ClassNode extends DecNode {
 
         final String classId;
@@ -454,6 +557,11 @@ public class AST {
 
     }
 
+    /**
+     * The node for the field declaration.
+     * It contains the id of the field and its type.
+     * It also contains the offset of the field.
+     */
     public static class FieldNode extends DecNode {
 
         final String fieldId;
@@ -471,6 +579,14 @@ public class AST {
 
     }
 
+    /**
+     * The node for the method declaration.
+     * It contains the id of the method, the return type,
+     * the list of parameters, the list of local declarations
+     * and the body of the method.
+     * It also contains the offset of the method and the label
+     * of the method used for the code generation.
+     */
     public static class MethodNode extends DecNode {
 
         final String methodId;
@@ -502,7 +618,10 @@ public class AST {
      * Value Nodes
      *********************
      ******************* */
-    
+
+    /**
+     * The node for the null value.
+     */
     public static class EmptyNode extends Node {
 
         @Override
@@ -518,6 +637,13 @@ public class AST {
      *********************
      ******************* */
 
+    /**
+     * The node for the method call.
+     * It contains the id of the object, the id of the method,
+     * the list of arguments and the entry in the symbol table.
+     * It also contains the entry of the method in the symbol table.
+     * It also contains the nesting level.
+     */
     public static class ClassCallNode extends Node {
 
         final String objectId;
@@ -541,6 +667,11 @@ public class AST {
 
     }
 
+    /**
+     * The node for the new expression.
+     * It contains the id of the class and the list of arguments.
+     * It also contains the entry in the symbol table.
+     */
     public static class NewNode extends Node {
 
         final String classId;
@@ -565,6 +696,10 @@ public class AST {
      *********************
      ******************* */
 
+    /**
+     * The node for the class type.
+     * It contains the list of fields and the list of methods.
+     */
     public static class ClassTypeNode extends TypeNode {
 
         final List<TypeNode> fields;
@@ -590,6 +725,10 @@ public class AST {
 
     }
 
+    /**
+     * The node for the method type.
+     * It contains the functional type of the method.
+     */
     public static class MethodTypeNode extends TypeNode {
 
         final ArrowTypeNode functionalType;
@@ -605,6 +744,10 @@ public class AST {
 
     }
 
+    /**
+     * The node for the object reference type.
+     * It contains the id of the class.
+     */
     public static class RefTypeNode extends TypeNode {
 
         final String typeId;
@@ -620,6 +763,9 @@ public class AST {
 
     }
 
+    /**
+     * The node for the null type.
+     */
     public static class EmptyTypeNode extends TypeNode {
 
         @Override
