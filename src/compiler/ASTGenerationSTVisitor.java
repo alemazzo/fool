@@ -438,6 +438,7 @@ public class ASTGenerationSTVisitor extends FOOLBaseVisitor<Node> {
     @Override
     public Node visitCldec(final CldecContext context) {
         if (print) printVarAndProdName(context);
+        if (context.ID().size() == 0) return null; // Incomplete ST
         final String classId = context.ID(0).getText();
         final Optional<String> superId = context.EXTENDS() == null ?
                 Optional.empty() : Optional.of(context.ID(1).getText());
@@ -474,6 +475,7 @@ public class ASTGenerationSTVisitor extends FOOLBaseVisitor<Node> {
     @Override
     public Node visitMethdec(final MethdecContext context) {
         if (print) printVarAndProdName(context);
+        if (context.ID().size() == 0) return null; // Incomplete ST
         final String methodId = context.ID(0).getText();
         final TypeNode returnType = (TypeNode) visit(context.type(0));
         final List<ParNode> params = IntStream.range(1, context.ID().size())
@@ -502,6 +504,7 @@ public class ASTGenerationSTVisitor extends FOOLBaseVisitor<Node> {
     @Override
     public Node visitNew(final NewContext context) {
         if (print) printVarAndProdName(context);
+        if (context.ID() == null) return null; // Incomplete ST
         final String classId = context.ID().getText();
         final List<Node> args = context.exp().stream()
                 .map(this::visit)
@@ -521,6 +524,7 @@ public class ASTGenerationSTVisitor extends FOOLBaseVisitor<Node> {
     @Override
     public Node visitDotCall(final DotCallContext context) {
         if (print) printVarAndProdName(context);
+        if (context.ID().size() != 2) return null; // Incomplete ST
         final String objectId = context.ID(0).getText();
         final String methodId = context.ID(1).getText();
         final List<Node> args = context.exp().stream()
