@@ -269,7 +269,7 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
         if (!(arrowTypeNode.parameters.size() == node.arguments.size())) {
             throw new TypeException("Wrong number of parameters in the invocation of " + node.id, node.getLine());
         }
-        
+
         for (int i = 0; i < node.arguments.size(); i++) {
             if (!(isSubtype(visit(node.arguments.get(i)), arrowTypeNode.parameters.get(i)))) {
                 throw new TypeException("Wrong type for " + (i + 1) + "-th parameter in the invocation of " + node.id, node.getLine());
@@ -556,16 +556,16 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
         // check if all fields and methods of the class are the correct subtypes and with the correct position
         for (final FieldNode field : node.fields) {
             int position = -field.offset - 1;
-            if (position < parentClassType.fields.size()
-                    && !isSubtype(classType.fields.get(position), parentClassType.fields.get(position))) {
+            final boolean isOverriding = position < parentClassType.fields.size();
+            if (isOverriding && !isSubtype(classType.fields.get(position), parentClassType.fields.get(position))) {
                 throw new TypeException("Wrong type for field " + field.fieldId, field.getLine());
             }
         }
 
         for (final MethodNode method : node.methods) {
             int position = method.offset;
-            if (position < parentClassType.methods.size()
-                    && !isSubtype(classType.methods.get(position), parentClassType.methods.get(position))) {
+            final boolean isOverriding = position < parentClassType.fields.size();
+            if (isOverriding && !isSubtype(classType.methods.get(position), parentClassType.methods.get(position))) {
                 throw new TypeException("Wrong type for method " + method.methodId, method.getLine());
             }
         }
