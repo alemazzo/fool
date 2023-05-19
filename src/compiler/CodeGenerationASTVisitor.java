@@ -165,6 +165,9 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
      * @return the code generated for the PrintNode node
      */
 
+
+    // region CLASS NODE
+
     @Override
     public String visitNode(final PrintNode node) {
         if (print) printNode(node);
@@ -311,7 +314,6 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
         }
 
         if (node.entry.type instanceof MethodTypeNode methodTypeNode) {
-            System.out.println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
             return nlJoin(
                     LOAD_FP, // load Control Link (pointer to frame of function "id" caller)
 
@@ -714,7 +716,7 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
         );
 
     }
-
+    // endregion CLASS NODE
     // *************************
     // *************************
     // OBJECT-ORIENTED EXTENSION
