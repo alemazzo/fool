@@ -10,12 +10,10 @@ import compiler.lib.TypeNode;
 
 import static compiler.TypeRels.*;
 
-//visitNode(n) fa il type checking di un Node n e ritorna:
-//- per una espressione, il suo tipo (oggetto BoolTypeNode o IntTypeNode)
-//- per una dichiarazione, "null"; controlla la correttezza interna della dichiarazione
-//(- per un tipo: "null"; controlla che il tipo non sia incompleto) 
-//
-//visitSTentry(s) ritorna, per una STentry s, il tipo contenuto al suo interno
+/**
+ * This class implements a type checking phase for the E-AST
+ * through the visitor pattern.
+ */
 public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeException> {
 
     public TypeCheckEASTVisitor(boolean incompleteExc, boolean debug) {
@@ -738,7 +736,7 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
      * OOP Type Nodes
      *********************
      ******************* */
-    
+
     /**
      * Visit a ClassTypeNode node.
      * Visit all fields and methods.

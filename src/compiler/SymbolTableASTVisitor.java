@@ -8,6 +8,14 @@ import compiler.lib.TypeNode;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * This class implements the linking phase of the compiler.
+ * It uses the ASTVisitor to visit the AST and build the symbol table, and the class table.
+ * <p>
+ * The symbol table is used to link the identifiers to their declarations.
+ * <p>
+ * The AST after the visit is called Enriched AST.
+ */
 public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
 
     /**

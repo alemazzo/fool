@@ -5,6 +5,10 @@ import compiler.exc.VoidException;
 import compiler.lib.BaseEASTVisitor;
 import compiler.lib.Node;
 
+/**
+ * This class implements a visitor that prints the E-AST.
+ * It is used for debugging purposes.
+ */
 public class PrintEASTVisitor extends BaseEASTVisitor<Void, VoidException> {
 
     PrintEASTVisitor() {
