@@ -369,7 +369,7 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
     }
 
     /**
-     * Generate code for the LessEqualNode node.
+     * Generate code for the MinusNode node.
      * <p>
      * The code generated for a LessEqualNode node is:
      * <ul>
