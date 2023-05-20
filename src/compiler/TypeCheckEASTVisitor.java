@@ -60,6 +60,12 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
         return ckvisit(entry.type);
     }
 
+    /* *******************
+     *********************
+     * Main program nodes
+     *********************
+     ******************* */
+
     /**
      * Visit a ProgLetInNode node and check its type.
      * For each declaration, visit it.
@@ -96,6 +102,12 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
         if (print) printNode(node);
         return visit(node.exp);
     }
+
+    /* *******************
+     *********************
+     * Basic Declaration Nodes
+     *********************
+     ******************* */
 
     /**
      * Visit a FunNode node and check its type.
@@ -142,19 +154,11 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
         return null;
     }
 
-    /**
-     * Visit a PrintNode node and check its type.
-     * Simply visit the expression and return its type.
-     *
-     * @param node the PrintNode node to visit
-     * @return the type of the expression
-     * @throws TypeException if the expression is not correct
-     */
-    @Override
-    public TypeNode visitNode(final PrintNode node) throws TypeException {
-        if (print) printNode(node);
-        return visit(node.exp);
-    }
+    /* *******************
+     *********************
+     * Operators Nodes
+     *********************
+     ******************* */
 
     /**
      * Visit a IfNode node and check its type.
@@ -183,270 +187,6 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
         }
 
         return returnType;
-    }
-
-    /**
-     * Visit a EqualNode node and check its type.
-     * Visit the left and right expressions and check that their types are compatible.
-     * Return boolean.
-     *
-     * @param node the EqualNode node to visit
-     * @return boolean
-     * @throws TypeException if the types of the expressions are not compatible
-     */
-    @Override
-    public TypeNode visitNode(final EqualNode node) throws TypeException {
-        if (print) printNode(node);
-        final TypeNode left = visit(node.left);
-        final TypeNode right = visit(node.right);
-        if (!(isSubtype(left, right) || isSubtype(right, left))) {
-            throw new TypeException("Incompatible types in equal", node.getLine());
-        }
-        return new BoolTypeNode();
-    }
-
-    /**
-     * Visit a TimesNode node and check its type.
-     * Visit the left and right expressions and check that their types are integers.
-     * Return integer.
-     *
-     * @param node the TimesNode node to visit
-     * @return integer
-     * @throws TypeException if the types of the expressions are not integers
-     */
-    @Override
-    public TypeNode visitNode(final TimesNode node) throws TypeException {
-        if (print) printNode(node);
-        if (!(isSubtype(visit(node.left), new IntTypeNode())
-                && isSubtype(visit(node.right), new IntTypeNode()))) {
-            throw new TypeException("Non integers in multiplication", node.getLine());
-        }
-        return new IntTypeNode();
-    }
-
-    /**
-     * Visit a PlusNode node and check its type.
-     * Visit the left and right expressions and check that their types are integers.
-     * Return integer.
-     *
-     * @param node the PlusNode node to visit
-     * @return integer
-     * @throws TypeException if the types of the expressions are not integers
-     */
-    @Override
-    public TypeNode visitNode(final PlusNode node) throws TypeException {
-        if (print) printNode(node);
-        if (!(isSubtype(visit(node.left), new IntTypeNode())
-                && isSubtype(visit(node.right), new IntTypeNode()))) {
-            throw new TypeException("Non integers in sum", node.getLine());
-        }
-        return new IntTypeNode();
-    }
-
-    /**
-     * Visit a CallNode node and check its type.
-     * Visit the entry of the function and check that it is a function.
-     * Then visit the arguments and check that their types are compatible with the types of the parameters.
-     * Return the return type of the function.
-     *
-     * @param node the CallNode node to visit
-     * @return the return type of the function
-     * @throws TypeException if the entry is not a function or the types of the arguments are not compatible with the types of the parameters
-     */
-    @Override
-    public TypeNode visitNode(final CallNode node) throws TypeException {
-        if (print) printNode(node, node.id);
-        TypeNode typeNode = visit(node.entry);
-
-        if (typeNode instanceof MethodTypeNode methodTypeNode) {
-            typeNode = methodTypeNode.functionalType;
-        }
-
-        if (!(typeNode instanceof ArrowTypeNode arrowTypeNode)) {
-            throw new TypeException("Invocation of a non-function " + node.id, node.getLine());
-        }
-
-        if (!(arrowTypeNode.parameters.size() == node.arguments.size())) {
-            throw new TypeException("Wrong number of parameters in the invocation of " + node.id, node.getLine());
-        }
-
-        for (int i = 0; i < node.arguments.size(); i++) {
-            if (!(isSubtype(visit(node.arguments.get(i)), arrowTypeNode.parameters.get(i)))) {
-                throw new TypeException("Wrong type for " + (i + 1) + "-th parameter in the invocation of " + node.id, node.getLine());
-            }
-        }
-        return arrowTypeNode.returnType;
-    }
-
-    /**
-     * Visit a IdNode node and check its type.
-     * Visit the entry of the identifier and return its type.
-     * If the type is a function, throws an exception.
-     *
-     * @param node the IdNode node to visit
-     * @return the type of the identifier
-     * @throws TypeException if the entry is a function
-     */
-    @Override
-    public TypeNode visitNode(final IdNode node) throws TypeException {
-        if (print) printNode(node, node.id);
-        final TypeNode typeNode = visit(node.entry);
-        if (typeNode instanceof ArrowTypeNode) {
-            throw new TypeException("Wrong usage of function identifier " + node.id, node.getLine());
-        }
-        return typeNode;
-    }
-
-    /**
-     * Visit a BoolNode node and check its type.
-     * Return boolean.
-     *
-     * @param node the BoolNode node to visit
-     * @return boolean
-     */
-    @Override
-    public TypeNode visitNode(final BoolNode node) {
-        if (print) printNode(node, node.value.toString());
-        return new BoolTypeNode();
-    }
-
-    /**
-     * Visit a IntNode node and check its type.
-     * Return integer.
-     *
-     * @param node the IntNode node to visit
-     * @return integer
-     */
-    @Override
-    public TypeNode visitNode(final IntNode node) {
-        if (print) printNode(node, node.value.toString());
-        return new IntTypeNode();
-    }
-
-    /**
-     * Visit a BoolTypeNode node.
-     * Return null.
-     *
-     * @param node the BoolTypeNode node to visit
-     * @return null
-     */
-    @Override
-    public TypeNode visitNode(final BoolTypeNode node) {
-        if (print) printNode(node);
-        return null;
-    }
-
-    /**
-     * Visit a IntTypeNode node.
-     * Return null.
-     *
-     * @param node the IntTypeNode node to visit
-     * @return null
-     */
-    @Override
-    public TypeNode visitNode(final IntTypeNode node) {
-        if (print) printNode(node);
-        return null;
-    }
-
-    /**
-     * Visit a ArrowTypeNode node.
-     * Visit the parameters and the return type.
-     * Return null.
-     *
-     * @param node the ArrowTypeNode node to visit
-     * @return null
-     */
-    @Override
-    public TypeNode visitNode(final ArrowTypeNode node) throws TypeException {
-        if (print) printNode(node);
-        for (final TypeNode parameter : node.parameters) {
-            visit(parameter);
-        }
-        visit(node.returnType, "->"); //marks return type
-        return null;
-    }
-
-    // ******************
-    // ******************
-    // OPERATOR EXTENSION
-    // ******************
-    // ******************
-
-    /**
-     * Visit a MinusNode node and check its type.
-     * Visit the left and right expressions and check that their types are integers.
-     * Return integer.
-     *
-     * @param node the MinusNode node to visit
-     * @return integer
-     * @throws TypeException if the types of the expressions are not integers
-     */
-    @Override
-    public TypeNode visitNode(final MinusNode node) throws TypeException {
-        if (print) printNode(node);
-        if (!(isSubtype(visit(node.left), new IntTypeNode())
-                && isSubtype(visit(node.right), new IntTypeNode()))) {
-            throw new TypeException("Non integers in minus", node.getLine());
-        }
-        return new IntTypeNode();
-    }
-
-    /**
-     * Visit a DivNode node and check its type.
-     * Visit the left and right expressions and check that their types are integers.
-     * Return integer.
-     *
-     * @param node the DivNode node to visit
-     * @return integer
-     * @throws TypeException if the types of the expressions are not integers
-     */
-    @Override
-    public TypeNode visitNode(final DivNode node) throws TypeException {
-        if (print) printNode(node);
-        if (!(isSubtype(visit(node.left), new IntTypeNode())
-                && isSubtype(visit(node.right), new IntTypeNode()))) {
-            throw new TypeException("Non integers in Div", node.getLine());
-        }
-        return new IntTypeNode();
-    }
-
-    /**
-     * Visit a GreaterEqualNode node and check its type.
-     * Visit the left and right expressions and check that their types are integers.
-     * Return boolean.
-     *
-     * @param node the GreaterEqualNode node to visit
-     * @return boolean
-     * @throws TypeException if the types of the expressions are not integers
-     */
-    @Override
-    public TypeNode visitNode(final GreaterEqualNode node) throws TypeException {
-        if (print) printNode(node);
-        if (!(isSubtype(visit(node.left), new IntTypeNode())
-                && isSubtype(visit(node.right), new IntTypeNode()))) {
-            throw new TypeException("Non integers in Gte", node.getLine());
-        }
-        return new BoolTypeNode();
-    }
-
-    /**
-     * Visit a LessEqualNode node and check its type.
-     * Visit the left and right expressions and check that their types are integers.
-     * Return boolean.
-     *
-     * @param node the LessEqualNode node to visit
-     * @return boolean
-     * @throws TypeException if the types of the expressions are not integers
-     */
-    @Override
-    public TypeNode visitNode(final LessEqualNode node) throws TypeException {
-        if (print) printNode(node);
-        if (!(isSubtype(visit(node.left), new IntTypeNode())
-                && isSubtype(visit(node.right), new IntTypeNode()))) {
-            throw new TypeException("Non integers in Lte", node.getLine());
-        }
-        return new BoolTypeNode();
     }
 
     /**
@@ -505,12 +245,307 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
         return new BoolTypeNode();
     }
 
+    /**
+     * Visit a EqualNode node and check its type.
+     * Visit the left and right expressions and check that their types are compatible.
+     * Return boolean.
+     *
+     * @param node the EqualNode node to visit
+     * @return boolean
+     * @throws TypeException if the types of the expressions are not compatible
+     */
+    @Override
+    public TypeNode visitNode(final EqualNode node) throws TypeException {
+        if (print) printNode(node);
+        final TypeNode left = visit(node.left);
+        final TypeNode right = visit(node.right);
+        if (!(isSubtype(left, right) || isSubtype(right, left))) {
+            throw new TypeException("Incompatible types in equal", node.getLine());
+        }
+        return new BoolTypeNode();
+    }
+
+    /**
+     * Visit a LessEqualNode node and check its type.
+     * Visit the left and right expressions and check that their types are integers.
+     * Return boolean.
+     *
+     * @param node the LessEqualNode node to visit
+     * @return boolean
+     * @throws TypeException if the types of the expressions are not integers
+     */
+    @Override
+    public TypeNode visitNode(final LessEqualNode node) throws TypeException {
+        if (print) printNode(node);
+        if (!(isSubtype(visit(node.left), new IntTypeNode())
+                && isSubtype(visit(node.right), new IntTypeNode()))) {
+            throw new TypeException("Non integers in Lte", node.getLine());
+        }
+        return new BoolTypeNode();
+    }
+
+    /**
+     * Visit a GreaterEqualNode node and check its type.
+     * Visit the left and right expressions and check that their types are integers.
+     * Return boolean.
+     *
+     * @param node the GreaterEqualNode node to visit
+     * @return boolean
+     * @throws TypeException if the types of the expressions are not integers
+     */
+    @Override
+    public TypeNode visitNode(final GreaterEqualNode node) throws TypeException {
+        if (print) printNode(node);
+        if (!(isSubtype(visit(node.left), new IntTypeNode())
+                && isSubtype(visit(node.right), new IntTypeNode()))) {
+            throw new TypeException("Non integers in Gte", node.getLine());
+        }
+        return new BoolTypeNode();
+    }
+
+    /**
+     * Visit a TimesNode node and check its type.
+     * Visit the left and right expressions and check that their types are integers.
+     * Return integer.
+     *
+     * @param node the TimesNode node to visit
+     * @return integer
+     * @throws TypeException if the types of the expressions are not integers
+     */
+    @Override
+    public TypeNode visitNode(final TimesNode node) throws TypeException {
+        if (print) printNode(node);
+        if (!(isSubtype(visit(node.left), new IntTypeNode())
+                && isSubtype(visit(node.right), new IntTypeNode()))) {
+            throw new TypeException("Non integers in multiplication", node.getLine());
+        }
+        return new IntTypeNode();
+    }
+
+    /**
+     * Visit a DivNode node and check its type.
+     * Visit the left and right expressions and check that their types are integers.
+     * Return integer.
+     *
+     * @param node the DivNode node to visit
+     * @return integer
+     * @throws TypeException if the types of the expressions are not integers
+     */
+    @Override
+    public TypeNode visitNode(final DivNode node) throws TypeException {
+        if (print) printNode(node);
+        if (!(isSubtype(visit(node.left), new IntTypeNode())
+                && isSubtype(visit(node.right), new IntTypeNode()))) {
+            throw new TypeException("Non integers in Div", node.getLine());
+        }
+        return new IntTypeNode();
+    }
+
+    /**
+     * Visit a PlusNode node and check its type.
+     * Visit the left and right expressions and check that their types are integers.
+     * Return integer.
+     *
+     * @param node the PlusNode node to visit
+     * @return integer
+     * @throws TypeException if the types of the expressions are not integers
+     */
+    @Override
+    public TypeNode visitNode(final PlusNode node) throws TypeException {
+        if (print) printNode(node);
+        if (!(isSubtype(visit(node.left), new IntTypeNode())
+                && isSubtype(visit(node.right), new IntTypeNode()))) {
+            throw new TypeException("Non integers in sum", node.getLine());
+        }
+        return new IntTypeNode();
+    }
+
+    /**
+     * Visit a MinusNode node and check its type.
+     * Visit the left and right expressions and check that their types are integers.
+     * Return integer.
+     *
+     * @param node the MinusNode node to visit
+     * @return integer
+     * @throws TypeException if the types of the expressions are not integers
+     */
+    @Override
+    public TypeNode visitNode(final MinusNode node) throws TypeException {
+        if (print) printNode(node);
+        if (!(isSubtype(visit(node.left), new IntTypeNode())
+                && isSubtype(visit(node.right), new IntTypeNode()))) {
+            throw new TypeException("Non integers in minus", node.getLine());
+        }
+        return new IntTypeNode();
+    }
+
+    /* *******************
+     *********************
+     * Values Nodes
+     *********************
+     ******************* */
+
+    /**
+     * Visit a IdNode node and check its type.
+     * Visit the entry of the identifier and return its type.
+     * If the type is a function, throws an exception.
+     *
+     * @param node the IdNode node to visit
+     * @return the type of the identifier
+     * @throws TypeException if the entry is a function
+     */
+    @Override
+    public TypeNode visitNode(final IdNode node) throws TypeException {
+        if (print) printNode(node, node.id);
+        final TypeNode typeNode = visit(node.entry);
+        if (typeNode instanceof ArrowTypeNode) {
+            throw new TypeException("Wrong usage of function identifier " + node.id, node.getLine());
+        }
+        return typeNode;
+    }
+
+    /**
+     * Visit a BoolNode node and check its type.
+     * Return boolean.
+     *
+     * @param node the BoolNode node to visit
+     * @return boolean
+     */
+    @Override
+    public TypeNode visitNode(final BoolNode node) {
+        if (print) printNode(node, node.value.toString());
+        return new BoolTypeNode();
+    }
+
+    /**
+     * Visit a IntNode node and check its type.
+     * Return integer.
+     *
+     * @param node the IntNode node to visit
+     * @return integer
+     */
+    @Override
+    public TypeNode visitNode(final IntNode node) {
+        if (print) printNode(node, node.value.toString());
+        return new IntTypeNode();
+    }
+
+    /* *******************
+     *********************
+     * Types Nodes
+     *********************
+     ******************* */
+
+    /**
+     * Visit a BoolTypeNode node.
+     * Return null.
+     *
+     * @param node the BoolTypeNode node to visit
+     * @return null
+     */
+    @Override
+    public TypeNode visitNode(final BoolTypeNode node) {
+        if (print) printNode(node);
+        return null;
+    }
+
+    /**
+     * Visit a IntTypeNode node.
+     * Return null.
+     *
+     * @param node the IntTypeNode node to visit
+     * @return null
+     */
+    @Override
+    public TypeNode visitNode(final IntTypeNode node) {
+        if (print) printNode(node);
+        return null;
+    }
+
+    /**
+     * Visit a ArrowTypeNode node.
+     * Visit the parameters and the return type.
+     * Return null.
+     *
+     * @param node the ArrowTypeNode node to visit
+     * @return null
+     */
+    @Override
+    public TypeNode visitNode(final ArrowTypeNode node) throws TypeException {
+        if (print) printNode(node);
+        for (final TypeNode parameter : node.parameters) {
+            visit(parameter);
+        }
+        visit(node.returnType, "->"); //marks return type
+        return null;
+    }
+
+    /* *******************
+     *********************
+     * Operations Nodes
+     *********************
+     ******************* */
+
+    /**
+     * Visit a PrintNode node and check its type.
+     * Simply visit the expression and return its type.
+     *
+     * @param node the PrintNode node to visit
+     * @return the type of the expression
+     * @throws TypeException if the expression is not correct
+     */
+    @Override
+    public TypeNode visitNode(final PrintNode node) throws TypeException {
+        if (print) printNode(node);
+        return visit(node.exp);
+    }
+
+    /**
+     * Visit a CallNode node and check its type.
+     * Visit the entry of the function and check that it is a function.
+     * Then visit the arguments and check that their types are compatible with the types of the parameters.
+     * Return the return type of the function.
+     *
+     * @param node the CallNode node to visit
+     * @return the return type of the function
+     * @throws TypeException if the entry is not a function or the types of the arguments are not compatible with the types of the parameters
+     */
+    @Override
+    public TypeNode visitNode(final CallNode node) throws TypeException {
+        if (print) printNode(node, node.id);
+        TypeNode typeNode = visit(node.entry);
+
+        if (typeNode instanceof MethodTypeNode methodTypeNode) {
+            typeNode = methodTypeNode.functionalType;
+        }
+
+        if (!(typeNode instanceof ArrowTypeNode arrowTypeNode)) {
+            throw new TypeException("Invocation of a non-function " + node.id, node.getLine());
+        }
+
+        if (!(arrowTypeNode.parameters.size() == node.arguments.size())) {
+            throw new TypeException("Wrong number of parameters in the invocation of " + node.id, node.getLine());
+        }
+
+        for (int i = 0; i < node.arguments.size(); i++) {
+            if (!(isSubtype(visit(node.arguments.get(i)), arrowTypeNode.parameters.get(i)))) {
+                throw new TypeException("Wrong type for " + (i + 1) + "-th parameter in the invocation of " + node.id, node.getLine());
+            }
+        }
+        return arrowTypeNode.returnType;
+    }
 
     // *************************
     // *************************
     // OBJECT-ORIENTED EXTENSION
     // *************************
     // *************************
+
+    /* *******************
+     *********************
+     * Declaration Nodes
+     *********************
+     ******************* */
 
     /**
      * Visit a ClassNode node and check its type.
@@ -601,6 +636,30 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
         return null;
     }
 
+    /* *******************
+     *********************
+     * Value Nodes
+     *********************
+     ******************* */
+
+    /**
+     * Visit an EmptyNode node and return an EmptyTypeNode.
+     *
+     * @param node the EmptyNode node to visit.
+     * @return an EmptyTypeNode.
+     */
+    @Override
+    public TypeNode visitNode(final EmptyNode node) {
+        if (print) printNode(node);
+        return new EmptyTypeNode();
+    }
+
+    /* *******************
+     *********************
+     * Operations Nodes
+     *********************
+     ******************* */
+
     /**
      * Visit a ClassCallNode node and check its type.
      * Visit the method entry and check that its type is a method type.
@@ -674,19 +733,12 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
         return new RefTypeNode(node.classId);
     }
 
-
-    /**
-     * Visit an EmptyNode node and return an EmptyTypeNode.
-     *
-     * @param node the EmptyNode node to visit.
-     * @return an EmptyTypeNode.
-     */
-    @Override
-    public TypeNode visitNode(final EmptyNode node) {
-        if (print) printNode(node);
-        return new EmptyTypeNode();
-    }
-
+    /* *******************
+     *********************
+     * OOP Type Nodes
+     *********************
+     ******************* */
+    
     /**
      * Visit a ClassTypeNode node.
      * Visit all fields and methods.

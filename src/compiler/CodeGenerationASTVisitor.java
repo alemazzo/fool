@@ -8,6 +8,7 @@ import compiler.lib.Node;
 import svm.ExecuteVM;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static compiler.CodeGenerationASTVisitor.Instructions.*;
@@ -30,6 +31,12 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
         super(false, debug);
     }
 
+    /* *******************
+     *********************
+     * Main program nodes
+     *********************
+     ******************* */
+
     /**
      * Generate code for the ProgLetIn node.
      * <p>
@@ -47,15 +54,15 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
     public String visitNode(final ProgLetInNode node) {
         if (print) printNode(node);
         String declarationsCode = null;
-        for (Node declaration : node.declarations) {
+        for (final Node declaration : node.declarations) {
             declarationsCode = nlJoin(declarationsCode, visit(declaration));
         }
         return nlJoin(
-                PUSH + 0,
-                declarationsCode, // generate code for declarations (allocation)
-                visit(node.exp),
-                HALT,
-                getCode()
+                PUSH + 0,    // Fake return address for the main
+                declarationsCode,   // generate code for declarations (allocation)
+                visit(node.exp),    // generate code for the expression
+                HALT,               // halt instruction
+                getCode()           // generated code for functions
         );
     }
 
@@ -76,10 +83,16 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
     public String visitNode(final ProgNode node) {
         if (print) printNode(node);
         return nlJoin(
-                visit(node.exp),
-                HALT
+                visit(node.exp),    // generate code for the expression
+                HALT                // halt instruction
         );
     }
+
+    /* *******************
+     *********************
+     * Basic Declaration Nodes
+     *********************
+     ******************* */
 
     /**
      * Generate code for the FunNode node.
@@ -103,36 +116,53 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
     @Override
     public String visitNode(final FunNode node) {
         if (print) printNode(node, node.id);
-        String declarationsCode = null, popDeclarationsCode = null, popParametersCode = null;
-        for (Node declaration : node.declarations) {
+
+        String declarationsCode = null;
+        for (final Node declaration : node.declarations) {
             declarationsCode = nlJoin(declarationsCode, visit(declaration));
-            popDeclarationsCode = nlJoin(popDeclarationsCode, "pop");
         }
-        for (int i = 0; i < node.parameters.size(); i++) {
-            popParametersCode = nlJoin(popParametersCode, "pop");
+
+        String popDeclarationsCode = null;
+        for (final Node declaration : node.declarations) {
+            popDeclarationsCode = nlJoin(popDeclarationsCode, POP);
         }
+
+        String popParametersCode = null;
+        for (final ParNode parameter : node.parameters) {
+            popParametersCode = nlJoin(popParametersCode, POP);
+        }
+
         final String funLabel = freshFunLabel();
-
-
         putCode(
                 nlJoin(
                         funLabel + ":",
-                        COPY_FP, // set $fp to $sp value
-                        LOAD_RA, // load $ra value
-                        declarationsCode, // generate code for local declarations (they use the new $fp!!!)
-                        visit(node.exp), // generate code for function body expression
-                        STORE_TM, // set $tm to popped value (function result)
-                        popDeclarationsCode, // remove local declarations from stack
-                        STORE_RA, // set $ra to popped value
-                        POP, // remove Access Link from stack
-                        popParametersCode, // remove parameters from stack
-                        STORE_FP, // set $fp to popped value (Control Link)
-                        LOAD_TM, // load $tm value (function result)
-                        LOAD_RA, // load $ra value
-                        JUMP_STACK // jump to popped address
+
+                        // Complete stack setup
+                        COPY_FP,                // set $fp to $sp value
+                        LOAD_RA,                // push $ra value (return address)
+                        declarationsCode,       // generate code for local declarations (they use the new $fp)
+
+                        // Function body
+                        visit(node.exp),        // generate code for function body expression,
+                        // it pushes the result on the stack
+
+
+                        // Clean up the stack frame
+                        STORE_TM,               // set $tm to popped value (function result)
+                        popDeclarationsCode,    // remove local declarations from stack
+                        STORE_RA,               // set $ra to popped value (return address)
+                        POP,                    // remove Access Link from stack
+                        popParametersCode,      // remove parameters from stack
+                        STORE_FP,               // set $fp to popped value (Control Link (pointer to frame of function "id" caller))
+
+                        // Return
+                        LOAD_TM,                // push $tm value (function result)
+                        LOAD_RA,                // push $ra value (return address)
+                        JUMP_STACK              // jump to popped address (return address)
                 )
         );
-        return PUSH + funLabel;
+
+        return PUSH + funLabel; // push function label
     }
 
     /**
@@ -149,30 +179,14 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
     @Override
     public String visitNode(final VarNode node) {
         if (print) printNode(node, node.id);
-        return visit(node.exp);
+        return visit(node.exp); // generate code for the expression
     }
 
-    /**
-     * Generate code for the PrintNode node.
-     * <p>
-     * The code generated for a PrintNode node is:
-     * <ul>
-     *     <li>the code for the expression;</li>
-     *     <li>the print instruction.</li>
-     * </ul>
-     *
-     * @param node the PrintNode node
-     * @return the code generated for the PrintNode node
-     */
-
-    @Override
-    public String visitNode(final PrintNode node) {
-        if (print) printNode(node);
-        return nlJoin(
-                visit(node.exp),
-                PRINT
-        );
-    }
+    /* *******************
+     *********************
+     * Operators Nodes
+     *********************
+     ******************* */
 
     /**
      * Generate code for the IfNode node.
@@ -196,14 +210,126 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
         String thenLabel = freshLabel();
         String endLabel = freshLabel();
         return nlJoin(
-                visit(node.condition),
-                PUSH + 1,
-                BRANCH_EQUAL + thenLabel,
-                visit(node.elseBranch),
-                BRANCH + endLabel,
-                thenLabel + ":",
-                visit(node.thenBranch),
-                endLabel + ":"
+                visit(node.condition),   // generate code for the condition expression
+                PUSH + 1,                       // push 1 on the stack
+                BRANCH_EQUAL + thenLabel,       // jump to thenLabel if the condition is true
+                visit(node.elseBranch),         // generate code for the else branch
+                BRANCH + endLabel,              // jump to endLabel
+                thenLabel + ":",                // thenLabel
+                visit(node.thenBranch),         // generate code for the then branch
+                endLabel + ":"                  // endLabel
+        );
+    }
+
+    /**
+     * Generate code for the NotNode node.
+     * <p>
+     * The code generated for a NotNode node is:
+     * <ul>
+     *     <li>the code to generate the expression;</li>
+     *     <li>the code to check if the value is 0, if so, then jump to the itWasFalseLabel;</li>
+     *     <li>the code to push 0(the result);</li>
+     *     <li>the code to jump to the end label;</li>
+     *     <li>the itWasFalseLabel;</li>
+     *     <li>the code to push 1(the result);</li>
+     *     <li>the end label;</li>
+     *  </ul>
+     *
+     * @param node the NotNode node
+     * @return the code generated for the NotNode node
+     */
+    @Override
+    public String visitNode(final NotNode node) {
+        if (print) printNode(node);
+        final String itWasFalseLabel = freshLabel();
+        final String endLabel = freshLabel();
+        return nlJoin(
+                visit(node.exp),         // generate code for expression
+                PUSH + 0,                       // push 0
+                BRANCH_EQUAL + itWasFalseLabel, // if value is 0, jump to itWasFalseLabel
+                PUSH + 0,                       // push 0 (the result)
+                BRANCH + endLabel,              // jump to end label
+                itWasFalseLabel + ":",          // itWasFalseLabel
+                PUSH + 1,                       // push 1 (the result)
+                endLabel + ":"                  // end label
+        );
+    }
+
+    /**
+     * Generate code for the OrNode node.
+     * <p>
+     * The code generated for a OrNode node is:
+     * <ul>
+     *     <li>the code to generate the left expression;</li>
+     *     <li>the code to check if the value is 1, if so, then jump to the true label;</li>
+     *     <li>the code to generate the right expression;</li>
+     *     <li>the code to check if the value is 1, if so, then jump to the true label;</li>
+     *     <li>the code to push 0(the result);</li>
+     *     <li>the code to jump to the end label;</li>
+     *     <li>the true label;</li>
+     *     <li>the code to push 1(the result);</li>
+     *     <li>the end label;</li>
+     * </ul>
+     *
+     * @param node the OrNode node
+     * @return the code generated for the OrNode node
+     */
+    @Override
+    public String visitNode(final OrNode node) {
+        if (print) printNode(node);
+        final String trueLabel = freshLabel();
+        final String endLabel = freshLabel();
+        return nlJoin(
+                visit(node.left),    // generate code for left expression
+                PUSH + 1,                   // push 1
+                BRANCH_EQUAL + trueLabel,   // if value is 1, jump to true label
+                visit(node.right),          // generate code for right expression
+                PUSH + 1,                   // push 1
+                BRANCH_EQUAL + trueLabel,   // if value is 1, jump to true label
+                PUSH + 0,                   // push 0 (the result)
+                BRANCH + endLabel,          // jump to end label
+                trueLabel + ":",            // true label
+                PUSH + 1,                   // push 1 (the result)
+                endLabel + ":"              // end label
+        );
+    }
+
+    /**
+     * Generate code for the AndNode node.
+     * <p>
+     * The code generated for a AndNode node is:
+     * <ul>
+     *     <li>the code to generate the left expression;</li>
+     *     <li>the code to check if the value is 0, if so, then jump to the false label;</li>
+     *     <li>the code to generate the right expression;</li>
+     *     <li>the code to check if the value is 0, if so, then jump to the false label;</li>
+     *     <li>the code to push 1(the result);</li>
+     *     <li>the code to jump to the end label;</li>
+     *     <li>the false label;</li>
+     *     <li>the code to push 0(the result);</li>
+     *     <li>the end label;</li>
+     * </ul>
+     *
+     * @param node the AndNode node
+     * @return the code generated for the AndNode node
+     */
+    @Override
+    public String visitNode(final AndNode node) {
+        if (print) printNode(node);
+        final String falseLabel = freshLabel();
+        final String endLabel = freshLabel();
+        return nlJoin(
+                visit(node.left),    // generate code for left expression
+                PUSH + 0,                   // push 0
+                BRANCH_EQUAL + falseLabel,  // if value is 0, jump to false label
+                visit(node.right),          // generate code for right expression
+                PUSH + 0,                   // push 0
+                BRANCH_EQUAL + falseLabel,  // if value is 0, jump to false label
+                PUSH + 1,                   // push 1 (the result)
+                BRANCH + endLabel,          // jump to end label
+                falseLabel + ":",           // false label
+                PUSH + 0,                   // push 0 (the result)
+                endLabel + ":"              // end label
         );
     }
 
@@ -231,236 +357,50 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
         final String trueLabel = freshLabel();
         final String endLabel = freshLabel();
         return nlJoin(
-                visit(node.left),
-                visit(node.right),
-                BRANCH_EQUAL + trueLabel,
-                PUSH + 0,
-                BRANCH + endLabel,
-                trueLabel + ":",
-                PUSH + 1,
-                endLabel + ":"
+                visit(node.left),    // generate code for the left expression
+                visit(node.right),          // generate code for the right expression
+                BRANCH_EQUAL + trueLabel,   // jump to trueLabel if the two expressions are equal
+                PUSH + 0,                   // push 0 on the stack (the result of the equal)
+                BRANCH + endLabel,          // jump to endLabel
+                trueLabel + ":",            // trueLabel
+                PUSH + 1,                   // push 1 on the stack (the result of the equal)
+                endLabel + ":"              // endLabel
         );
     }
 
     /**
-     * Generate code for the TimesNode node.
+     * Generate code for the LessEqualNode node.
      * <p>
-     * The code generated for a TimesNode node is:
-     * <ul>
-     *     <li>the code for the left expression;</li>
-     *     <li>the code for the right expression;</li>
-     *     <li>the code to multiply the two expressions;</li>
-     * </ul>
-     *
-     * @param node the TimesNode node
-     * @return the code generated for the TimesNode node
-     */
-    @Override
-    public String visitNode(final TimesNode node) {
-        if (print) printNode(node);
-        return nlJoin(
-                visit(node.left),
-                visit(node.right),
-                MULT
-        );
-    }
-
-    /**
-     * Generate code for the PlusNode node.
-     * <p>
-     * The code generated for a PlusNode node is:
-     * <ul>
-     *     <li>the code for the left expression;</li>
-     *     <li>the code for the right expression;</li>
-     *     <li>the code to add the two expressions;</li>
-     * </ul>
-     *
-     * @param node the PlusNode node
-     * @return the code generated for the PlusNode node
-     */
-    @Override
-    public String visitNode(final PlusNode node) {
-        if (print) printNode(node);
-        return nlJoin(
-                visit(node.left),
-                visit(node.right),
-                ADD
-        );
-    }
-
-    /**
-     * Generate code for the CallNode node.
-     * <p>
-     * The code generated for a CallNode node is:
-     * <ul>
-     *     TODO: complete this description
-     * </ul>
-     *
-     * @param node the CallNode node
-     * @return the code generated for the CallNode node
-     */
-    @Override
-    public String visitNode(final CallNode node) {
-        if (print) printNode(node, node.id);
-        String argumentsCode = null, getARCode = null;
-        for (int i = node.arguments.size() - 1; i >= 0; i--) {
-            argumentsCode = nlJoin(argumentsCode, visit(node.arguments.get(i)));
-        }
-        for (int i = 0; i < node.nestingLevel - node.entry.nl; i++) {
-            getARCode = nlJoin(getARCode, LOAD_WORD);
-        }
-
-        if (node.entry.type instanceof MethodTypeNode methodTypeNode) {
-            System.out.println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-            return nlJoin(
-                    LOAD_FP, // load Control Link (pointer to frame of function "id" caller)
-
-                    argumentsCode, // generate code for argument expressions in reversed order
-
-                    LOAD_FP, getARCode, // retrieve address of frame containing "id" declaration
-                    // by following the static chain (of Access Links)
-
-                    STORE_TM, // set $tm to popped value (with the aim of duplicating top of stack)
-                    LOAD_TM, // load Access Link (pointer to frame of function "id" declaration)
-
-                    LOAD_TM, // duplicate top of stack
-                    LOAD_WORD, // Get AL
-                    PUSH + node.entry.offset, // Get offset
-                    ADD, // compute address of "id" declaration
-                    LOAD_WORD, // load address of "id" function
-
-                    JUMP_STACK  // jump to popped address (saving address of subsequent instruction in $ra)
-            );
-        } else {
-            return nlJoin(
-                    LOAD_FP, // load Control Link (pointer to frame of function "id" caller)
-                    argumentsCode, // generate code for argument expressions in reversed order
-                    LOAD_FP, getARCode, // retrieve address of frame containing "id" declaration
-                    // by following the static chain (of Access Links)
-                    STORE_TM, // set $tm to popped value (with the aim of duplicating top of stack)
-                    LOAD_TM, // load Access Link (pointer to frame of function "id" declaration)
-
-                    LOAD_TM, // duplicate top of stack
-                    PUSH + node.entry.offset,
-                    ADD, // compute address of "id" declaration
-                    LOAD_WORD, // load address of "id" function
-
-                    JUMP_STACK  // jump to popped address (saving address of subsequent instruction in $ra)
-            );
-        }
-    }
-
-    /**
-     * Generate code for the IdNode node.
-     * <p>
-     * The code generated for an IdNode node is:
-     * <ul>
-     *     <li>the code to load the address of the frame containing the declaration of the variable;</li>
-     *     <li>the code to compute the address of the variable;</li>
-     *     <li>the code to load the value of the variable;</li>
-     * </ul>
-     *
-     * @param node the IdNode node
-     * @return the code generated for the IdNode node
-     */
-    @Override
-    public String visitNode(final IdNode node) {
-        if (print) printNode(node, node.id);
-        String getARCode = null;
-        for (int i = 0; i < node.nestingLevel - node.entry.nl; i++) {
-            getARCode = nlJoin(getARCode, LOAD_WORD);
-        }
-        return nlJoin(
-                LOAD_FP, getARCode, // retrieve address of frame containing "id" declaration
-                // by following the static chain (of Access Links)
-                PUSH + node.entry.offset, ADD, // compute address of "id" declaration
-                LOAD_WORD // load value of "id" variable
-        );
-    }
-
-    /**
-     * Generate code for the BoolNode node.
-     * <p>
-     * The code generated for a BoolNode node is:
-     * <ul>
-     *     <li>the code to push the value of the boolean;</li>
-     * </ul>
-     *
-     * @param node the BoolNode node
-     * @return the code generated for the BoolNode node
-     */
-    @Override
-    public String visitNode(final BoolNode node) {
-        if (print) printNode(node, node.value.toString());
-        return PUSH + (node.value ? 1 : 0);
-    }
-
-    /**
-     * Generate code for the IntNode node.
-     * <p>
-     * The code generated for an IntNode node is:
-     * <ul>
-     *     <li>the code to push the value of the integer;</li>
-     * </ul>
-     *
-     * @param node the IntNode node
-     * @return the code generated for the IntNode node
-     */
-    @Override
-    public String visitNode(final IntNode node) {
-        if (print) printNode(node, node.value.toString());
-        return PUSH + node.value;
-    }
-
-    /**
-     * Generate code for the MinusNode node.
-     * <p>
-     * The code generated for a MinusNode node is:
+     * The code generated for a LessEqualNode node is:
      * <ul>
      *     <li>the code to generate the left expression;</li>
      *     <li>the code to generate the right expression;</li>
-     *     <li>the code to subtract the right value from the left value;</li>
+     *     <li>the code to check if the left value is less or equal
+     *         than the right value, if so, then jump to the true label;</li>
+     *     <li>the code to push 0(the result);</li>
+     *     <li>the code to jump to the end label;</li>
+     *     <li>the true label;</li>
+     *     <li>the code to push 1(the result);</li>
+     *     <li>the end label;</li>
      * </ul>
      *
-     * @param node the MinusNode node
-     * @return the code generated for the MinusNode node
+     * @param node the LessEqualNode node
+     * @return the code generated for the LessEqualNode node
      */
     @Override
-    public String visitNode(final MinusNode node) {
+    public String visitNode(final LessEqualNode node) {
         if (print) printNode(node);
+        final String endLabel = freshLabel();
+        final String trueLabel = freshLabel();
         return nlJoin(
-                visit(node.left),
-                visit(node.right),
-                SUB
-        );
-    }
-
-    // ******************
-    // ******************
-    // OPERATOR EXTENSION
-    // ******************
-    // ******************
-
-    /**
-     * Generate code for the DivNode node.
-     * <p>
-     * The code generated for a DivNode node is:
-     * <ul>
-     *     <li>the code to generate the left expression;</li>
-     *     <li>the code to generate the right expression;</li>
-     *     <li>the code to divide the left value by the right value;</li>
-     * </ul>
-     *
-     * @param node the DivNode node
-     * @return the code generated for the DivNode node
-     */
-    @Override
-    public String visitNode(final DivNode node) {
-        if (print) printNode(node);
-        return nlJoin(
-                visit(node.left),
-                visit(node.right),
-                DIV
+                visit(node.left),        // generate code for left expression
+                visit(node.right),              // generate code for right expression
+                BRANCH_LESS_EQUAL + trueLabel,  // if left value is less or equal than right value, jump to true label
+                PUSH + 0,                       // push 0 (the result)
+                BRANCH + endLabel,              // jump to end label
+                trueLabel + ":",                // true label
+                PUSH + 1,                       // push 1 (the result)
+                endLabel + ":"                  // end label
         );
     }
 
@@ -490,166 +430,279 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
         final String falseLabel = freshLabel();
         final String endLabel = freshLabel();
         return nlJoin(
-                visit(node.left),
-                visit(node.right),
-                PUSH + 1,
-                SUB,
-                BRANCH_LESS_EQUAL + falseLabel,   //if less , then false
-                PUSH + 1,
-                BRANCH + endLabel,
-                falseLabel + ":",       //false
-                PUSH + 0,
-                endLabel + ":"          //end
+                visit(node.left),        // generate code for left expression
+                visit(node.right),              // generate code for right expression
+                PUSH + 1,                       // push 1
+                SUB,                            // subtract 1 from right value
+                BRANCH_LESS_EQUAL + falseLabel, // if left value is not less or equal than right value, jump to false label
+                PUSH + 1,                       // push 1 (the result)
+                BRANCH + endLabel,              // jump to end label
+                falseLabel + ":",               // false label
+                PUSH + 0,                       // push 0 (the result)
+                endLabel + ":"                  // end label
         );
     }
 
     /**
-     * Generate code for the LessEqualNode node.
+     * Generate code for the TimesNode node.
      * <p>
-     * The code generated for a LessEqualNode node is:
+     * The code generated for a TimesNode node is:
+     * <ul>
+     *     <li>the code for the left expression;</li>
+     *     <li>the code for the right expression;</li>
+     *     <li>the code to multiply the two expressions;</li>
+     * </ul>
+     *
+     * @param node the TimesNode node
+     * @return the code generated for the TimesNode node
+     */
+    @Override
+    public String visitNode(final TimesNode node) {
+        if (print) printNode(node);
+        return nlJoin(
+                visit(node.left),   // generate code for the left expression
+                visit(node.right),  // generate code for the right expression
+                MULT                // multiply the two expressions
+        );
+    }
+
+    /**
+     * Generate code for the DivNode node.
+     * <p>
+     * The code generated for a DivNode node is:
      * <ul>
      *     <li>the code to generate the left expression;</li>
      *     <li>the code to generate the right expression;</li>
-     *     <li>the code to check if the left value is less or equal
-     *         than the right value, if so, then jump to the true label;</li>
-     *     <li>the code to push 0(the result);</li>
-     *     <li>the code to jump to the end label;</li>
-     *     <li>the true label;</li>
-     *     <li>the code to push 1(the result);</li>
-     *     <li>the end label;</li>
+     *     <li>the code to divide the left value by the right value;</li>
      * </ul>
      *
-     * @param node the LessEqualNode node
-     * @return the code generated for the LessEqualNode node
+     * @param node the DivNode node
+     * @return the code generated for the DivNode node
      */
     @Override
-    public String visitNode(final LessEqualNode node) {
+    public String visitNode(final DivNode node) {
         if (print) printNode(node);
-        final String endLabel = freshLabel();
-        final String trueLabel = freshLabel();
         return nlJoin(
-                visit(node.left),
-                visit(node.right),
-                BRANCH_LESS_EQUAL + trueLabel,    //if less or equal, then true
-                PUSH + 0,
-                BRANCH + endLabel,
-                trueLabel + ":",        //true
-                PUSH + 1,
-                endLabel + ":"          //end
+                visit(node.left),   // generate code for left expression
+                visit(node.right),  // generate code for right expression
+                DIV                 // divide left value by right value
         );
     }
 
     /**
-     * Generate code for the NotNode node.
+     * Generate code for the PlusNode node.
      * <p>
-     * The code generated for a NotNode node is:
+     * The code generated for a PlusNode node is:
      * <ul>
-     *     <li>the code to generate the expression;</li>
-     *     <li>the code to check if the value is 0, if so, then jump to the itWasFalseLabel;</li>
-     *     <li>the code to push 0(the result);</li>
-     *     <li>the code to jump to the end label;</li>
-     *     <li>the itWasFalseLabel;</li>
-     *     <li>the code to push 1(the result);</li>
-     *     <li>the end label;</li>
-     *  </ul>
+     *     <li>the code for the left expression;</li>
+     *     <li>the code for the right expression;</li>
+     *     <li>the code to add the two expressions;</li>
+     * </ul>
      *
-     * @param node the NotNode node
-     * @return the code generated for the NotNode node
+     * @param node the PlusNode node
+     * @return the code generated for the PlusNode node
      */
     @Override
-    public String visitNode(final NotNode node) {
+    public String visitNode(final PlusNode node) {
         if (print) printNode(node);
-        final String itWasFalseLabel = freshLabel();
-        final String endLabel = freshLabel();
         return nlJoin(
-                visit(node.exp),
-                PUSH + 0,
-                BRANCH_EQUAL + itWasFalseLabel,
-                PUSH + 0,
-                BRANCH + endLabel,
-                itWasFalseLabel + ":",
-                PUSH + 1,
-                endLabel + ":"
+                visit(node.left),   // generate code for the left expression
+                visit(node.right),  // generate code for the right expression
+                ADD                 // add the two expressions
         );
     }
 
     /**
-     * Generate code for the OrNode node.
+     * Generate code for the MinusNode node.
      * <p>
-     * The code generated for a OrNode node is:
+     * The code generated for a MinusNode node is:
      * <ul>
      *     <li>the code to generate the left expression;</li>
-     *     <li>the code to check if the value is 1, if so, then jump to the true label;</li>
      *     <li>the code to generate the right expression;</li>
-     *     <li>the code to check if the value is 1, if so, then jump to the true label;</li>
-     *     <li>the code to push 0(the result);</li>
-     *     <li>the code to jump to the end label;</li>
-     *     <li>the true label;</li>
-     *     <li>the code to push 1(the result);</li>
-     *     <li>the end label;</li>
+     *     <li>the code to subtract the right value from the left value;</li>
      * </ul>
      *
-     * @param node the OrNode node
-     * @return the code generated for the OrNode node
+     * @param node the MinusNode node
+     * @return the code generated for the MinusNode node
      */
     @Override
-    public String visitNode(final OrNode node) {
+    public String visitNode(final MinusNode node) {
         if (print) printNode(node);
-        final String trueLabel = freshLabel();
-        final String endLabel = freshLabel();
         return nlJoin(
-                visit(node.left),
-                PUSH + 1,
-                BRANCH_EQUAL + trueLabel,
-                visit(node.right),
-                PUSH + 1,
-                BRANCH_EQUAL + trueLabel,
-                PUSH + 0,
-                BRANCH + endLabel,
-                trueLabel + ":",
-                PUSH + 1,
-                endLabel + ":"
+                visit(node.left),   // generate code for left expression
+                visit(node.right),  // generate code for right expression
+                SUB                 // subtract right value from left value
+        );
+    }
+
+    /* *******************
+     *********************
+     * Values Nodes
+     *********************
+     ******************* */
+
+    /**
+     * Generate code for the BoolNode node.
+     * <p>
+     * The code generated for a BoolNode node is:
+     * <ul>
+     *     <li>the code to push the value of the boolean;</li>
+     * </ul>
+     *
+     * @param node the BoolNode node
+     * @return the code generated for the BoolNode node
+     */
+    @Override
+    public String visitNode(final BoolNode node) {
+        if (print) printNode(node, node.value.toString());
+        return PUSH + (node.value ? 1 : 0); // push 1 if true, 0 if false
+    }
+
+    /**
+     * Generate code for the IntNode node.
+     * <p>
+     * The code generated for an IntNode node is:
+     * <ul>
+     *     <li>the code to push the value of the integer;</li>
+     * </ul>
+     *
+     * @param node the IntNode node
+     * @return the code generated for the IntNode node
+     */
+    @Override
+    public String visitNode(final IntNode node) {
+        if (print) printNode(node, node.value.toString());
+        return PUSH + node.value; // push the value of the integer
+    }
+
+    /**
+     * Generate code for the IdNode node.
+     * <p>
+     * The code generated for an IdNode node is:
+     * <ul>
+     *     <li>the code to load the address of the frame containing the declaration of the variable;</li>
+     *     <li>the code to compute the address of the variable;</li>
+     *     <li>the code to load the value of the variable;</li>
+     * </ul>
+     *
+     * @param node the IdNode node
+     * @return the code generated for the IdNode node
+     */
+    @Override
+    public String visitNode(final IdNode node) {
+        if (print) printNode(node, node.id);
+        String getARCode = null;
+        for (int i = 0; i < node.nestingLevel - node.entry.nl; i++) {
+            getARCode = nlJoin(getARCode, LOAD_WORD);
+        }
+        return nlJoin(
+                // Retrieve the AR where the variable is declared
+                LOAD_FP, getARCode, /* retrieve address of frame containing "id" declaration,
+                                           by following the static chain (of Access Links) */
+
+                // Load the value of the variable
+                PUSH + node.entry.offset,   // push offset of the variable
+                ADD,                        // compute address of the variable
+                LOAD_WORD                   // push value of the variable
+        );
+    }
+
+    /* *******************
+     *********************
+     * Operations Nodes
+     *********************
+     ******************* */
+
+    /**
+     * Generate code for the PrintNode node.
+     * <p>
+     * The code generated for a PrintNode node is:
+     * <ul>
+     *     <li>the code for the expression;</li>
+     *     <li>the print instruction.</li>
+     * </ul>
+     *
+     * @param node the PrintNode node
+     * @return the code generated for the PrintNode node
+     */
+    @Override
+    public String visitNode(final PrintNode node) {
+        if (print) printNode(node);
+        return nlJoin(
+                visit(node.exp),    // generate code for the expression
+                PRINT               // print instruction
         );
     }
 
     /**
-     * Generate code for the AndNode node.
+     * Generate code for the CallNode node.
      * <p>
-     * The code generated for a AndNode node is:
+     * The code generated for a CallNode node is:
      * <ul>
-     *     <li>the code to generate the left expression;</li>
-     *     <li>the code to check if the value is 0, if so, then jump to the false label;</li>
-     *     <li>the code to generate the right expression;</li>
-     *     <li>the code to check if the value is 0, if so, then jump to the false label;</li>
-     *     <li>the code to push 1(the result);</li>
-     *     <li>the code to jump to the end label;</li>
-     *     <li>the false label;</li>
-     *     <li>the code to push 0(the result);</li>
-     *     <li>the end label;</li>
+     *     TODO: complete this description
      * </ul>
      *
-     * @param node the AndNode node
-     * @return the code generated for the AndNode node
+     * @param node the CallNode node
+     * @return the code generated for the CallNode node
      */
     @Override
-    public String visitNode(final AndNode node) {
-        if (print) printNode(node);
-        final String falseLabel = freshLabel();
-        final String endLabel = freshLabel();
+    public String visitNode(final CallNode node) {
+        if (print) printNode(node, node.id);
+
+        // Reverse argument list
+        final List<Node> reversedArgumentsCode = new ArrayList<>(node.arguments);
+        Collections.reverse(reversedArgumentsCode);
+
+        String argumentsCode = null;
+        for (final Node argument : reversedArgumentsCode) {
+            argumentsCode = nlJoin(argumentsCode, visit(argument));
+        }
+
+        String getARCode = null;
+        for (int i = 0; i < node.nestingLevel - node.entry.nl; i++) {
+            getARCode = nlJoin(getARCode, LOAD_WORD);
+        }
+
         return nlJoin(
-                visit(node.left),
-                PUSH + 0,
-                BRANCH_EQUAL + falseLabel,
-                visit(node.right),
-                PUSH + 0,
-                BRANCH_EQUAL + falseLabel,
-                PUSH + 1,
-                BRANCH + endLabel,
-                falseLabel + ":",
-                PUSH + 0,
-                endLabel + ":"
+                // Set up the stack frame
+                LOAD_FP,     // push Control Link (pointer to frame of function "id" caller) on the stack
+                argumentsCode,      // generate code for argument expressions in reversed order
+
+                // Retrieve the AR where the function is declared
+                LOAD_FP, getARCode, /* retrieve address of frame containing "id" declaration,
+                                           by following the static chain (of Access Links) */
+
+                STORE_TM,           // set $tm to popped value (the AR where the function is declared)
+                LOAD_TM,            /* push Access Link (pointer to frame of function "id" declaration),
+                                           it's for the AR of the function */
+
+                // Load the address of the function
+                LOAD_TM,                    // duplicate top of stack
+
+                // load address of dispatch table if method
+                (node.entry.type instanceof MethodTypeNode) ? LOAD_WORD : "",
+
+                PUSH + node.entry.offset,   // push offset of "id" declaration
+                ADD,                        // compute address of "id" declaration
+                LOAD_WORD,                  // push address of "id" function (the label of the function)
+
+                // Jump to the function
+                JUMP_STACK  // jump to popped address (saving address of subsequent instruction in $ra)
+
         );
     }
+
+    // *************************
+    // *************************
+    // OBJECT-ORIENTED EXTENSION
+    // *************************
+    // *************************
+
+    /* *******************
+     *********************
+     * Declaration Nodes
+     *********************
+     ******************* */
 
     /**
      * Generate code for the ClassNode node.
@@ -697,29 +750,26 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
             dispatchTableHeapCode = nlJoin(
                     dispatchTableHeapCode,
 
-                    PUSH + label,
-                    LOAD_HEAP_POINTER,
-                    STORE_WORD,
+                    // Store method label in heap
+                    PUSH + label,       // push method label
+                    LOAD_HEAP_POINTER,  // push heap pointer
+                    STORE_WORD,         // store method label in heap
 
-                    LOAD_HEAP_POINTER,
-                    PUSH + 1,
-                    ADD,
-                    STORE_HP
+                    // Increment heap pointer
+                    LOAD_HEAP_POINTER,  // push heap pointer
+                    PUSH + 1,           // push 1
+                    ADD,                // heap pointer + 1
+                    STORE_HP            // store heap pointer
+
             );
         }
 
         return nlJoin(
-                LOAD_HEAP_POINTER,
-                dispatchTableHeapCode
+                LOAD_HEAP_POINTER,      // push heap pointer, the address of the dispatch table
+                dispatchTableHeapCode   // generated code for creating the dispatch table in the heap
         );
 
     }
-
-    // *************************
-    // *************************
-    // OBJECT-ORIENTED EXTENSION
-    // *************************
-    // *************************
 
     /**
      * Generate code for the MethodNode node.
@@ -745,12 +795,15 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
         if (print) printNode(node);
 
         String declarationsCode = "";
-        String popDeclarationsCode = "";
         for (final DecNode declaration : node.declarations) {
             declarationsCode = nlJoin(
                     declarationsCode,
                     visit(declaration)
             );
+        }
+
+        String popDeclarationsCode = "";
+        for (final DecNode declaration : node.declarations) {
             popDeclarationsCode = nlJoin(
                     popDeclarationsCode,
                     POP
@@ -767,29 +820,64 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
 
         final String methodLabel = freshFunLabel();
 
-        node.label = methodLabel;
+        node.label = methodLabel; // set the label of the method
 
+        // Generate code for the method body
         putCode(
                 nlJoin(
-                        methodLabel + ":",
-                        COPY_FP,
-                        LOAD_RA,
-                        declarationsCode,
-                        visit(node.exp),
-                        STORE_TM, // set $tm to popped value (function result)
-                        popDeclarationsCode,
-                        STORE_RA,
-                        POP,
-                        popParametersCode,
-                        STORE_FP,
-                        LOAD_TM,
-                        LOAD_RA,
-                        JUMP_STACK
+                        methodLabel + ":",   // method label
+                        COPY_FP,                    // copy $sp to $fp, the new frame pointer
+                        LOAD_RA,                    // push return address
+                        declarationsCode,           // generate code for declarations
+                        visit(node.exp),            // generate code for the expression
+                        STORE_TM,                   // set $tm to popped value (function result)
+
+                        // Frame cleanup
+                        popDeclarationsCode,        // pop declarations
+                        STORE_RA,                   // pop return address to $ra (for return)
+                        POP,                        // pop $fp
+                        popParametersCode,          // pop parameters
+                        STORE_FP,                   // pop $fp (restore old frame pointer)
+
+                        // Return
+                        LOAD_TM,                    // push function result
+                        LOAD_RA,                    // push return address
+                        JUMP_STACK                  // jump to return address
                 )
         );
 
         return null;
     }
+
+
+    /* *******************
+     *********************
+     * Value Nodes
+     *********************
+     ******************* */
+
+    /**
+     * Generate code for the EmptyNode node.
+     * <p>
+     * The code generated for an EmptyNode node is:
+     * <ul>
+     *     <li>the code to push -1 on the stack;</li>
+     * </ul>
+     *
+     * @param node the EmptyNode node
+     * @return the code generated for the EmptyNode node
+     */
+    @Override
+    public String visitNode(final EmptyNode node) {
+        if (print) printNode(node);
+        return PUSH + "-1";
+    }
+
+    /* *******************
+     *********************
+     * Operations Nodes
+     *********************
+     ******************* */
 
     /**
      * Generate code for the ClassCallNode node.
@@ -828,23 +916,30 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
         }
 
         return nlJoin(
-                LOAD_FP, // push $fp on the stack
-                argumentsCode, // push arguments on the stack
-                LOAD_FP, getARCode, // push $ar on the stack
 
-                PUSH + node.entry.offset, // push class offset on the stack
-                ADD, // add class offset to $ar
-                LOAD_WORD, // load class address
+                // Set up the stack frame
+                LOAD_FP,     // push $fp on the stack
+                argumentsCode,      // generate arguments
 
-                STORE_TM, // set $tm to popped value (class address)
-                LOAD_TM, // push class address on the stack
+                // Get the address of the object
+                LOAD_FP, getARCode,         // get AR
+                PUSH + node.entry.offset,   // push class offset on the stack
+                ADD,                        // add class offset to $ar
+                LOAD_WORD,                  // load object address
 
-                LOAD_TM, // push class address on the stack
-                LOAD_WORD, // load dispatch table address
+
+                // Duplicate class address
+                STORE_TM,     // set $tm to popped value (class address)
+                LOAD_TM,      // push class address on the stack
+                LOAD_TM,      // duplicate class address
+
+                // Get the address of the method
+                LOAD_WORD,    // load dispatch table address
                 PUSH + node.methodEntry.offset, // push method offset on the stack
-                ADD, // add method offset to dispatch table address
-                LOAD_WORD, // load method address
+                ADD,          // add method offset to dispatch table address
+                LOAD_WORD,    // load method address
 
+                // Call the method
                 JUMP_STACK
         );
 
@@ -872,55 +967,50 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
         if (print) printNode(node);
 
         String argumentsCode = "";
-        String moveArgumentsOnHeapCode = "";
-        for (int i = 0; i < node.args.size(); i++) {
+        for (final Node argument : node.args) {
             argumentsCode = nlJoin(
                     argumentsCode,
-                    visit(node.args.get(i))
+                    visit(argument)
             );
+        }
+
+        String moveArgumentsOnHeapCode = "";
+        for (final Node argument : node.args) {
             moveArgumentsOnHeapCode = nlJoin(
                     moveArgumentsOnHeapCode,
-                    LOAD_HEAP_POINTER,
-                    STORE_WORD,
-                    LOAD_HEAP_POINTER,
-                    PUSH + 1,
-                    ADD,
-                    STORE_HP
+
+                    // Store argument on the heap
+                    LOAD_HEAP_POINTER,    // push $hp on the stack
+                    STORE_WORD,           // store argument on the heap
+
+                    // Update $hp = $hp + 1
+                    LOAD_HEAP_POINTER,    // push $hp on the stack
+                    PUSH + 1,             // push 1 on the stack
+                    ADD,                  // add 1 to $hp
+                    STORE_HP              // store $hp
             );
         }
 
         return nlJoin(
-                argumentsCode,
-                moveArgumentsOnHeapCode,
-                PUSH + (ExecuteVM.MEMSIZE + node.entry.offset),
-                LOAD_WORD,
-                LOAD_HEAP_POINTER,
-                STORE_WORD,
 
-                LOAD_HEAP_POINTER,
-                LOAD_HEAP_POINTER,
-                PUSH + 1,
-                ADD,
-                STORE_HP
+                // Set up arguments on the stack
+                argumentsCode,      // generate arguments
+                moveArgumentsOnHeapCode,    // move arguments on the heap
+
+                PUSH + (ExecuteVM.MEMSIZE + node.entry.offset), // push class address on the stack
+                LOAD_WORD,          // load dispatch table address
+                LOAD_HEAP_POINTER,  // push $hp on the stack
+                STORE_WORD,         // store dispatch table address on the heap
+
+                LOAD_HEAP_POINTER,  // push $hp on the stack (object address)
+
+                // Update $hp = $hp + 1
+                LOAD_HEAP_POINTER,  // push $hp on the stack
+                PUSH + 1,           // push 1 on the stack
+                ADD,                // add 1 to $hp
+                STORE_HP            // store $hp
         );
 
-    }
-
-    /**
-     * Generate code for the EmptyNode node.
-     * <p>
-     * The code generated for an EmptyNode node is:
-     * <ul>
-     *     <li>the code to push -1 on the stack;</li>
-     * </ul>
-     *
-     * @param node the EmptyNode node
-     * @return the code generated for the EmptyNode node
-     */
-    @Override
-    public String visitNode(final EmptyNode node) {
-        if (print) printNode(node);
-        return PUSH + "-1";
     }
 
     static class Instructions {

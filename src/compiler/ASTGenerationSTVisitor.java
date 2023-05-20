@@ -62,6 +62,25 @@ public class ASTGenerationSTVisitor extends FOOLBaseVisitor<Node> {
     }
 
     /**
+     * Visit the Pars context.
+     * It visits the expression and returns it as result of the visit.
+     *
+     * @param context the parse tree
+     * @return the result of the visit of the expression
+     */
+    @Override
+    public Node visitPars(final ParsContext context) {
+        if (print) printVarAndProdName(context);
+        return visit(context.exp());
+    }
+
+    /* *******************
+     *********************
+     * Main program nodes
+     *********************
+     ******************* */
+
+    /**
      * Visit the Prog context.
      * It visits the progbody and returns the result of the visit.
      *
@@ -110,6 +129,12 @@ public class ASTGenerationSTVisitor extends FOOLBaseVisitor<Node> {
         return new ProgNode(visit(context.exp()));
     }
 
+    /* *******************
+     *********************
+     * Basic Declaration Nodes
+     *********************
+     ******************* */
+
     /**
      * Visit the Vardec context.
      * It visits the type and the expression and returns the VarNode built with the results of the visits.
@@ -156,73 +181,11 @@ public class ASTGenerationSTVisitor extends FOOLBaseVisitor<Node> {
         return node;
     }
 
-    /**
-     * Visit the IntType context.
-     * It returns the IntTypeNode.
-     *
-     * @param context the parse tree
-     * @return the IntTypeNode
-     */
-    @Override
-    public Node visitIntType(final IntTypeContext context) {
-        if (print) printVarAndProdName(context);
-        return new IntTypeNode();
-    }
-
-    /**
-     * Visit the BoolType context.
-     * It returns the BoolTypeNode.
-     *
-     * @param context the parse tree
-     * @return the BoolTypeNode
-     */
-    @Override
-    public Node visitBoolType(final BoolTypeContext context) {
-        if (print) printVarAndProdName(context);
-        return new BoolTypeNode();
-    }
-
-    /**
-     * Visit the Integer context.
-     * It returns the IntNode built with the value of the integer.
-     * If the integer is negative, it returns the IntNode built with the opposite value.
-     *
-     * @param context the parse tree
-     * @return the IntNode built with the value of the integer
-     */
-    @Override
-    public Node visitInteger(final IntegerContext context) {
-        if (print) printVarAndProdName(context);
-        int value = Integer.parseInt(context.NUM().getText());
-        int realValue = context.MINUS() == null ? value : -value;
-        return new IntNode(realValue);
-    }
-
-    /**
-     * Visit a True context.
-     * It returns the BoolNode built with the value true.
-     *
-     * @param context the parse tree
-     * @return the BoolNode built with the value true
-     */
-    @Override
-    public Node visitTrue(final TrueContext context) {
-        if (print) printVarAndProdName(context);
-        return new BoolNode(true);
-    }
-
-    /**
-     * Visit a False context.
-     * It returns the BoolNode built with the value false.
-     *
-     * @param context the parse tree
-     * @return the BoolNode built with the value false
-     */
-    @Override
-    public Node visitFalse(final FalseContext context) {
-        if (print) printVarAndProdName(context);
-        return new BoolNode(false);
-    }
+    /* *******************
+     *********************
+     * Operators Nodes
+     *********************
+     ******************* */
 
     /**
      * Visit the If context.
@@ -243,72 +206,70 @@ public class ASTGenerationSTVisitor extends FOOLBaseVisitor<Node> {
     }
 
     /**
-     * Visit the Print context.
-     * It visits the expression and returns the PrintNode built with the result of the visit.
+     * Visit the Not context.
+     * It returns the NotNode built with the result of the visit.
      *
      * @param context the parse tree
-     * @return the PrintNode built with the result of the visit
+     * @return the NotNode built with the result of the visit
      */
     @Override
-    public Node visitPrint(final PrintContext context) {
+    public Node visitNot(final NotContext context) {
         if (print) printVarAndProdName(context);
-        final Node exp = visit(context.exp());
-        return new PrintNode(exp);
-    }
-
-    /**
-     * Visit the Pars context.
-     * It visits the expression and returns it as result of the visit.
-     *
-     * @param context the parse tree
-     * @return the result of the visit of the expression
-     */
-    @Override
-    public Node visitPars(final ParsContext context) {
-        if (print) printVarAndProdName(context);
-        return visit(context.exp());
-    }
-
-    /**
-     * Visit the Id context.
-     * It returns the IdNode built with the id.
-     *
-     * @param context the parse tree
-     * @return the IdNode built with the id
-     */
-    @Override
-    public Node visitId(final IdContext context) {
-        if (print) printVarAndProdName(context);
-        final String id = context.ID().getText();
-        final Node node = new IdNode(id);
-        node.setLine(context.ID().getSymbol().getLine());
+        final Node node = new NotNode(visit(context.exp()));
+        node.setLine(context.NOT().getSymbol().getLine());
         return node;
     }
 
     /**
-     * Visit the Call context.
-     * It returns the CallNode built with the id and the list of the arguments.
+     * Visit the AndOr context.
+     * It returns the AndNode or the OrNode built with the results of the visits.
      *
      * @param context the parse tree
-     * @return the CallNode built with the id and the list of the arguments
+     * @return the AndNode or the OrNode built with the results of the visits
      */
     @Override
-    public Node visitCall(final CallContext context) {
+    public Node visitAndOr(final AndOrContext context) {
         if (print) printVarAndProdName(context);
-        final String id = context.ID().getText();
-        final List<Node> arglist = context.exp().stream()
-                .map(this::visit)
-                .collect(Collectors.toList());
-        final Node node = new CallNode(id, arglist);
-        node.setLine(context.ID().getSymbol().getLine());
-        return node;
+        if (context.AND() != null) {
+            // It's an AndNode
+            final Node node = new AndNode(visit(context.exp(0)), visit(context.exp(1)));
+            node.setLine(context.AND().getSymbol().getLine());
+            return node;
+        } else {
+            // It's an OrNode
+            final Node node = new OrNode(visit(context.exp(0)), visit(context.exp(1)));
+            node.setLine(context.OR().getSymbol().getLine());
+            return node;
+        }
     }
 
-    // ******************
-    // ******************
-    // OPERATOR EXTENSION
-    // ******************
-    // ******************
+    /**
+     * Visit the Comp context.
+     * It returns the EqualNode, the GreaterEqualNode or the LessEqualNode built with the results of the visits.
+     *
+     * @param context the parse tree
+     * @return the EqualNode, the GreaterEqualNode or the LessEqualNode built with the results of the visits
+     */
+    @Override
+    public Node visitComp(final CompContext context) {
+        if (print) printVarAndProdName(context);
+        if (context.EQ() != null) {
+            // It's an EqualNode
+            final Node node = new EqualNode(visit(context.exp(0)), visit(context.exp(1)));
+            node.setLine(context.EQ().getSymbol().getLine());
+            return node;
+        } else if (context.GE() != null) {
+            // It's a GreaterEqualNode
+            final Node node = new GreaterEqualNode(visit(context.exp(0)), visit(context.exp(1)));
+            node.setLine(context.GE().getSymbol().getLine());
+            return node;
+        } else {
+            // It's a LessEqualNode
+            final Node node = new LessEqualNode(visit(context.exp(0)), visit(context.exp(1)));
+            node.setLine(context.LE().getSymbol().getLine());
+            return node;
+        }
+    }
 
     /**
      * Visit the TimesDiv context.
@@ -356,77 +317,153 @@ public class ASTGenerationSTVisitor extends FOOLBaseVisitor<Node> {
         }
     }
 
+    /* *******************
+     *********************
+     * Values Nodes
+     *********************
+     ******************* */
+
     /**
-     * Visit the Comp context.
-     * It returns the EqualNode, the GreaterEqualNode or the LessEqualNode built with the results of the visits.
+     * Visit a True context.
+     * It returns the BoolNode built with the value true.
      *
      * @param context the parse tree
-     * @return the EqualNode, the GreaterEqualNode or the LessEqualNode built with the results of the visits
+     * @return the BoolNode built with the value true
      */
     @Override
-    public Node visitComp(final CompContext context) {
+    public Node visitTrue(final TrueContext context) {
         if (print) printVarAndProdName(context);
-        if (context.EQ() != null) {
-            // It's an EqualNode
-            final Node node = new EqualNode(visit(context.exp(0)), visit(context.exp(1)));
-            node.setLine(context.EQ().getSymbol().getLine());
-            return node;
-        } else if (context.GE() != null) {
-            // It's a GreaterEqualNode
-            final Node node = new GreaterEqualNode(visit(context.exp(0)), visit(context.exp(1)));
-            node.setLine(context.GE().getSymbol().getLine());
-            return node;
-        } else {
-            // It's a LessEqualNode
-            final Node node = new LessEqualNode(visit(context.exp(0)), visit(context.exp(1)));
-            node.setLine(context.LE().getSymbol().getLine());
-            return node;
-        }
+        return new BoolNode(true);
     }
 
     /**
-     * Visit the AndOr context.
-     * It returns the AndNode or the OrNode built with the results of the visits.
+     * Visit a False context.
+     * It returns the BoolNode built with the value false.
      *
      * @param context the parse tree
-     * @return the AndNode or the OrNode built with the results of the visits
+     * @return the BoolNode built with the value false
      */
     @Override
-    public Node visitAndOr(final AndOrContext context) {
+    public Node visitFalse(final FalseContext context) {
         if (print) printVarAndProdName(context);
-        if (context.AND() != null) {
-            // It's an AndNode
-            final Node node = new AndNode(visit(context.exp(0)), visit(context.exp(1)));
-            node.setLine(context.AND().getSymbol().getLine());
-            return node;
-        } else {
-            // It's an OrNode
-            final Node node = new OrNode(visit(context.exp(0)), visit(context.exp(1)));
-            node.setLine(context.OR().getSymbol().getLine());
-            return node;
-        }
+        return new BoolNode(false);
     }
 
     /**
-     * Visit the Not context.
-     * It returns the NotNode built with the result of the visit.
+     * Visit the Integer context.
+     * It returns the IntNode built with the value of the integer.
+     * If the integer is negative, it returns the IntNode built with the opposite value.
      *
      * @param context the parse tree
-     * @return the NotNode built with the result of the visit
+     * @return the IntNode built with the value of the integer
      */
     @Override
-    public Node visitNot(final NotContext context) {
+    public Node visitInteger(final IntegerContext context) {
         if (print) printVarAndProdName(context);
-        final Node node = new NotNode(visit(context.exp()));
-        node.setLine(context.NOT().getSymbol().getLine());
+        int value = Integer.parseInt(context.NUM().getText());
+        int realValue = context.MINUS() == null ? value : -value;
+        return new IntNode(realValue);
+    }
+
+    /**
+     * Visit the Id context.
+     * It returns the IdNode built with the id.
+     *
+     * @param context the parse tree
+     * @return the IdNode built with the id
+     */
+    @Override
+    public Node visitId(final IdContext context) {
+        if (print) printVarAndProdName(context);
+        final String id = context.ID().getText();
+        final Node node = new IdNode(id);
+        node.setLine(context.ID().getSymbol().getLine());
         return node;
     }
+
+    /* *******************
+     *********************
+     * Types Nodes
+     *********************
+     ******************* */
+
+    /**
+     * Visit the IntType context.
+     * It returns the IntTypeNode.
+     *
+     * @param context the parse tree
+     * @return the IntTypeNode
+     */
+    @Override
+    public Node visitIntType(final IntTypeContext context) {
+        if (print) printVarAndProdName(context);
+        return new IntTypeNode();
+    }
+
+    /**
+     * Visit the BoolType context.
+     * It returns the BoolTypeNode.
+     *
+     * @param context the parse tree
+     * @return the BoolTypeNode
+     */
+    @Override
+    public Node visitBoolType(final BoolTypeContext context) {
+        if (print) printVarAndProdName(context);
+        return new BoolTypeNode();
+    }
+
+    /* *******************
+     *********************
+     * Operations Nodes
+     *********************
+     ******************* */
+
+    /**
+     * Visit the Print context.
+     * It visits the expression and returns the PrintNode built with the result of the visit.
+     *
+     * @param context the parse tree
+     * @return the PrintNode built with the result of the visit
+     */
+    @Override
+    public Node visitPrint(final PrintContext context) {
+        if (print) printVarAndProdName(context);
+        final Node exp = visit(context.exp());
+        return new PrintNode(exp);
+    }
+
+    /**
+     * Visit the Call context.
+     * It returns the CallNode built with the id and the list of the arguments.
+     *
+     * @param context the parse tree
+     * @return the CallNode built with the id and the list of the arguments
+     */
+    @Override
+    public Node visitCall(final CallContext context) {
+        if (print) printVarAndProdName(context);
+        final String id = context.ID().getText();
+        final List<Node> arglist = context.exp().stream()
+                .map(this::visit)
+                .collect(Collectors.toList());
+        final Node node = new CallNode(id, arglist);
+        node.setLine(context.ID().getSymbol().getLine());
+        return node;
+    }
+
 
     // *************************
     // *************************
     // OBJECT-ORIENTED EXTENSION
     // *************************
     // *************************
+
+    /* *******************
+     *********************
+     * Declaration Nodes
+     *********************
+     ******************* */
 
     /**
      * Visit the Cldec context.
@@ -494,25 +531,30 @@ public class ASTGenerationSTVisitor extends FOOLBaseVisitor<Node> {
         return methodNode;
     }
 
+    /* *******************
+     *********************
+     * Value Nodes
+     *********************
+     ******************* */
+
     /**
-     * Visit the New context.
-     * It returns the NewNode built with the class id and the arguments.
+     * Visit the Null context.
+     * It returns the EmptyNode.
      *
      * @param context the parse tree
-     * @return the NewNode built with the class id and the arguments
+     * @return the EmptyNode
      */
     @Override
-    public Node visitNew(final NewContext context) {
+    public Node visitNull(final NullContext context) {
         if (print) printVarAndProdName(context);
-        if (context.ID() == null) return null; // Incomplete ST
-        final String classId = context.ID().getText();
-        final List<Node> args = context.exp().stream()
-                .map(this::visit)
-                .toList();
-        final NewNode newNode = new NewNode(classId, args);
-        newNode.setLine(context.ID().getSymbol().getLine());
-        return newNode;
+        return new EmptyNode();
     }
+
+    /* *******************
+     *********************
+     * Operations Nodes
+     *********************
+     ******************* */
 
     /**
      * Visit the DotCall context.
@@ -536,6 +578,32 @@ public class ASTGenerationSTVisitor extends FOOLBaseVisitor<Node> {
     }
 
     /**
+     * Visit the New context.
+     * It returns the NewNode built with the class id and the arguments.
+     *
+     * @param context the parse tree
+     * @return the NewNode built with the class id and the arguments
+     */
+    @Override
+    public Node visitNew(final NewContext context) {
+        if (print) printVarAndProdName(context);
+        if (context.ID() == null) return null; // Incomplete ST
+        final String classId = context.ID().getText();
+        final List<Node> args = context.exp().stream()
+                .map(this::visit)
+                .toList();
+        final NewNode newNode = new NewNode(classId, args);
+        newNode.setLine(context.ID().getSymbol().getLine());
+        return newNode;
+    }
+
+    /* *******************
+     *********************
+     * OOP Type Nodes
+     *********************
+     ******************* */
+    
+    /**
      * Visit the IdType context.
      * It returns the RefTypeNode built with the id.
      *
@@ -549,19 +617,6 @@ public class ASTGenerationSTVisitor extends FOOLBaseVisitor<Node> {
         final RefTypeNode node = new RefTypeNode(id);
         node.setLine(context.ID().getSymbol().getLine());
         return node;
-    }
-
-    /**
-     * Visit the Null context.
-     * It returns the EmptyNode.
-     *
-     * @param context the parse tree
-     * @return the EmptyNode
-     */
-    @Override
-    public Node visitNull(final NullContext context) {
-        if (print) printVarAndProdName(context);
-        return new EmptyNode();
     }
 
 }
