@@ -554,7 +554,7 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
      */
     @Override
     public String visitNode(final BoolNode node) {
-        if (print) printNode(node, node.value.toString());
+        if (print) printNode(node, String.valueOf(node.value));
         return PUSH + (node.value ? 1 : 0); // push 1 if true, 0 if false
     }
 

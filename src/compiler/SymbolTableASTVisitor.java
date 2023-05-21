@@ -373,7 +373,7 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
      */
     @Override
     public Void visitNode(final BoolNode node) {
-        if (print) printNode(node, node.value.toString());
+        if (print) printNode(node, String.valueOf(node.value));
         return null;
     }
 

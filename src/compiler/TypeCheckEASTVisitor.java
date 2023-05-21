@@ -411,7 +411,7 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
      */
     @Override
     public TypeNode visitNode(final BoolNode node) {
-        if (print) printNode(node, node.value.toString());
+        if (print) printNode(node, String.valueOf(node.value));
         return new BoolTypeNode();
     }
 

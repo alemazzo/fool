@@ -167,7 +167,7 @@ public class PrintEASTVisitor extends BaseEASTVisitor<Void, VoidException> {
 
     @Override
     public Void visitNode(BoolNode n) {
-        printNode(n, n.value.toString());
+        printNode(n, String.valueOf(n.value));
         return null;
     }
 
