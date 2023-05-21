@@ -274,7 +274,7 @@ public class AST {
     }
 
     /**
-     * The node for the times expression.
+     * The node for the times' expression.
      * It contains the left and right expression.
      */
     public static class TimesNode extends Node {
@@ -546,8 +546,8 @@ public class AST {
         public ClassNode(final String classId, final Optional<String> superId, final List<FieldNode> fields, final List<MethodNode> methods) {
             this.classId = classId;
             this.superId = superId;
-            this.fields = fields;
-            this.methods = methods;
+            this.fields = Collections.unmodifiableList(fields);
+            this.methods = Collections.unmodifiableList(methods);
         }
 
         @Override
@@ -601,8 +601,8 @@ public class AST {
         public MethodNode(final String methodId, final TypeNode returnType, final List<ParNode> params, final List<DecNode> declarations, final Node exp) {
             this.methodId = methodId;
             this.returnType = returnType;
-            this.params = params;
-            this.declarations = declarations;
+            this.params = Collections.unmodifiableList(params);
+            this.declarations = Collections.unmodifiableList(declarations);
             this.exp = exp;
         }
 
@@ -657,7 +657,7 @@ public class AST {
         public ClassCallNode(final String objectId, final String methodId, final List<Node> args) {
             this.objectId = objectId;
             this.methodId = methodId;
-            this.args = args;
+            this.args = Collections.unmodifiableList(args);
         }
 
         @Override
@@ -680,7 +680,7 @@ public class AST {
 
         public NewNode(final String classId, final List<Node> args) {
             this.classId = classId;
-            this.args = args;
+            this.args = Collections.unmodifiableList(args);
         }
 
         @Override
