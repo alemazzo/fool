@@ -583,7 +583,7 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
             return null;
         }
 
-        final ClassTypeNode classType = node.type;
+        final ClassTypeNode classType = (ClassTypeNode) node.getType();
         final ClassTypeNode parentClassType = (ClassTypeNode) node.superEntry.type;
 
         // check if all fields and methods of the class are the correct subtypes and with the correct position

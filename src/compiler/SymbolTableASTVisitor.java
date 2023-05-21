@@ -502,7 +502,7 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
         }
 
         final ClassTypeNode classTypeNode = tempClassTypeNode;
-        node.type = classTypeNode;
+        node.setType(classTypeNode);
 
         // Add the class id to the global scope table checking for duplicates
         final STentry entry = new STentry(0, classTypeNode, decOffset--);

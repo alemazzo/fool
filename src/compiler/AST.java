@@ -540,7 +540,6 @@ public class AST {
         final Optional<String> superId;
         final List<FieldNode> fields;
         final List<MethodNode> methods;
-        ClassTypeNode type;
         STentry superEntry;
 
         public ClassNode(final String classId, final Optional<String> superId, final List<FieldNode> fields, final List<MethodNode> methods) {
@@ -548,6 +547,10 @@ public class AST {
             this.superId = superId;
             this.fields = Collections.unmodifiableList(fields);
             this.methods = Collections.unmodifiableList(methods);
+        }
+
+        void setType(final ClassTypeNode type) {
+            this.type = type;
         }
 
         @Override
