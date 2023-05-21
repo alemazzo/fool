@@ -131,7 +131,7 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
                         // Return
                         LOAD_TM,                // push $tm value (function result)
                         LOAD_RA,                // push $ra value (return address)
-                        JUMP_STACK              // jump to popped address (return address)
+                        JUMP_SUBROUTINE              // jump to popped address (return address)
                 )
         );
 
@@ -513,7 +513,7 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
                 LOAD_WORD,                  // push address of "id" function (the label of the function)
 
                 // Jump to the function
-                JUMP_STACK  // jump to popped address (saving address of subsequent instruction in $ra)
+                JUMP_SUBROUTINE  // jump to popped address (saving address of subsequent instruction in $ra)
 
         );
     }
@@ -649,7 +649,7 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
                         // Return
                         LOAD_TM,                    // push function result
                         LOAD_RA,                    // push return address
-                        JUMP_STACK                  // jump to return address
+                        JUMP_SUBROUTINE                  // jump to return address
                 )
         );
 
@@ -732,7 +732,7 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
                 LOAD_WORD,    // load method address
 
                 // Call the method
-                JUMP_STACK
+                JUMP_SUBROUTINE
         );
 
     }
@@ -774,15 +774,17 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
 
         return nlJoin(
 
-                // Set up arguments on the stack
+                // Set up arguments on the stack and move them on the heap
                 argumentsCode,      // generate arguments
-                moveArgumentsOnHeapCode,    // move arguments on the heap
+                moveArgumentsOnHeapCode,  // move arguments on the heap
 
+                // Load the address of the dispatch table in the heap
                 PUSH + (ExecuteVM.MEMSIZE + node.entry.offset), // push class address on the stack
                 LOAD_WORD,          // load dispatch table address
                 LOAD_HEAP_POINTER,  // push $hp on the stack
                 STORE_WORD,         // store dispatch table address on the heap
 
+                // Put the result on the stack (object address)
                 LOAD_HEAP_POINTER,  // push $hp on the stack (object address)
 
                 // Update $hp = $hp + 1
@@ -927,7 +929,7 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
          * Set the RETURN ADDRESS to the actual INSTRUCTION POINTER.
          * JUMP to the address on the top of the stack.
          */
-        static final String JUMP_STACK = "js";
+        static final String JUMP_SUBROUTINE = "js";
 
 
     }
