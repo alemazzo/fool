@@ -16,7 +16,7 @@ import svm.SVMParser;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 
-public class Test {
+public class TestMain {
     public static void main(String[] args) throws Exception {
 
         String fileName = "examples/bankloan.fool";

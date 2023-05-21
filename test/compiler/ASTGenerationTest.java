@@ -1,6 +1,7 @@
 package compiler;
 
 import compiler.AST.*;
+import org.junit.jupiter.api.Test;
 
 import static compiler.CodeUtils.*;
 import static org.antlr.v4.runtime.CharStreams.fromString;

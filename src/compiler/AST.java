@@ -364,7 +364,7 @@ public class AST {
      */
     public static class BoolNode extends Node {
 
-        final Boolean value;
+        final boolean value;
 
         BoolNode(final boolean value) {
             this.value = value;

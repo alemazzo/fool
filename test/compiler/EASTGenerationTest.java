@@ -1,5 +1,7 @@
 package compiler;
 
+import org.junit.jupiter.api.Test;
+
 import static compiler.CodeUtils.*;
 import static org.antlr.v4.runtime.CharStreams.fromString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
