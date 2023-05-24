@@ -594,17 +594,17 @@ public class AST {
 
         final String methodId;
         final TypeNode returnType;
-        final List<ParNode> params;
+        final List<ParNode> parameters;
         final List<DecNode> declarations;
         final Node exp;
         int offset = 0;
 
         String label;
 
-        public MethodNode(final String methodId, final TypeNode returnType, final List<ParNode> params, final List<DecNode> declarations, final Node exp) {
+        public MethodNode(final String methodId, final TypeNode returnType, final List<ParNode> parameters, final List<DecNode> declarations, final Node exp) {
             this.methodId = methodId;
             this.returnType = returnType;
-            this.params = Collections.unmodifiableList(params);
+            this.parameters = Collections.unmodifiableList(parameters);
             this.declarations = Collections.unmodifiableList(declarations);
             this.exp = exp;
         }

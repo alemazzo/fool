@@ -627,7 +627,7 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
     public Void visitNode(final MethodNode node) {
         if (print) printNode(node);
         final Map<String, STentry> currentTable = symbolTable.get(nestingLevel);
-        final List<TypeNode> params = node.params.stream()
+        final List<TypeNode> params = node.parameters.stream()
                 .map(ParNode::getType)
                 .toList();
         final boolean isOverriding = currentTable.containsKey(node.methodId);
@@ -658,7 +658,7 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
         decOffset = -2;
         int parameterOffset = 1;
 
-        for (final ParNode parameter : node.params) {
+        for (final ParNode parameter : node.parameters) {
             final STentry parameterEntry = new STentry(nestingLevel, parameter.getType(), parameterOffset++);
             if (methodTable.put(parameter.id, parameterEntry) != null) {
                 System.out.println("Par id " + parameter.id + " at line " + node.getLine() + " already declared");

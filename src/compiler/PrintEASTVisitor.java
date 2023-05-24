@@ -3,9 +3,6 @@ package compiler;
 import compiler.AST.*;
 import compiler.exc.VoidException;
 import compiler.lib.BaseEASTVisitor;
-import compiler.lib.DecNode;
-import compiler.lib.Node;
-import compiler.lib.TypeNode;
 
 /**
  * This class implements a visitor that prints the E-AST.
@@ -20,7 +17,7 @@ public class PrintEASTVisitor extends BaseEASTVisitor<Void, VoidException> {
     @Override
     public Void visitNode(final ProgLetInNode node) {
         printNode(node);
-        for (final Node declaration : node.declarations) visit(declaration);
+        node.declarations.forEach(this::visit);
         visit(node.exp);
         return null;
     }
@@ -36,8 +33,8 @@ public class PrintEASTVisitor extends BaseEASTVisitor<Void, VoidException> {
     public Void visitNode(final FunNode node) {
         printNode(node, node.id);
         visit(node.returnType);
-        for (final ParNode parameter : node.parameters) visit(parameter);
-        for (final Node declaration : node.declarations) visit(declaration);
+        node.parameters.forEach(this::visit);
+        node.declarations.forEach(this::visit);
         visit(node.exp);
         return null;
     }
@@ -156,7 +153,7 @@ public class PrintEASTVisitor extends BaseEASTVisitor<Void, VoidException> {
     public Void visitNode(final CallNode node) {
         printNode(node, node.id + " with nesting level: " + node.nestingLevel);
         visit(node.entry);
-        for (final Node arg : node.arguments) visit(arg);
+        node.arguments.forEach(this::visit);
         return null;
     }
 
@@ -182,7 +179,7 @@ public class PrintEASTVisitor extends BaseEASTVisitor<Void, VoidException> {
     @Override
     public Void visitNode(final ArrowTypeNode node) {
         printNode(node);
-        for (final Node parameter : node.parameters) visit(parameter);
+        node.parameters.forEach(this::visit);
         visit(node.returnType, "->");
         return null;
     }
@@ -215,8 +212,8 @@ public class PrintEASTVisitor extends BaseEASTVisitor<Void, VoidException> {
     @Override
     public Void visitNode(final ClassNode node) throws VoidException {
         printNode(node, node.classId + (node.superId.isPresent() ? " extends: " + node.superId : ""));
-        for (final FieldNode field : node.fields) visit(field);
-        for (final Node method : node.methods) visit(method);
+        node.fields.forEach(this::visit);
+        node.methods.forEach(this::visit);
         return null;
     }
 
@@ -231,8 +228,8 @@ public class PrintEASTVisitor extends BaseEASTVisitor<Void, VoidException> {
     public Void visitNode(final MethodNode node) throws VoidException {
         printNode(node, node.methodId);
         visit(node.returnType);
-        for (final ParNode parameter : node.params) visit(parameter);
-        for (final DecNode declaration : node.declarations) visit(declaration);
+        node.parameters.forEach(this::visit);
+        node.declarations.forEach(this::visit);
         visit(node.exp);
         return null;
     }
@@ -242,7 +239,7 @@ public class PrintEASTVisitor extends BaseEASTVisitor<Void, VoidException> {
         printNode(node, node.objectId + "." + node.methodId + " with nesting level: " + node.nestingLevel);
         visit(node.entry);
         visit(node.methodEntry);
-        for (final Node arg : node.args) visit(arg);
+        node.args.forEach(this::visit);
         return null;
     }
 
@@ -250,7 +247,7 @@ public class PrintEASTVisitor extends BaseEASTVisitor<Void, VoidException> {
     public Void visitNode(final NewNode node) throws VoidException {
         printNode(node, node.classId + " with nesting level: " + node.entry.nl);
         visit(node.entry);
-        for (final Node arg : node.args) visit(arg);
+        node.args.forEach(this::visit);
         return null;
     }
 
@@ -263,15 +260,15 @@ public class PrintEASTVisitor extends BaseEASTVisitor<Void, VoidException> {
     @Override
     public Void visitNode(final ClassTypeNode node) throws VoidException {
         printNode(node);
-        for (final TypeNode field : node.fields) visit(field);
-        for (final ArrowTypeNode method : node.methods) visit(method);
+        node.fields.forEach(this::visit);
+        node.methods.forEach(this::visit);
         return null;
     }
 
     @Override
     public Void visitNode(final MethodTypeNode node) throws VoidException {
         printNode(node);
-        for (final Node parameter : node.functionalType.parameters) visit(parameter);
+        node.functionalType.parameters.forEach(this::visit);
         visit(node.functionalType.returnType, "->"); //marks return type
         return null;
     }

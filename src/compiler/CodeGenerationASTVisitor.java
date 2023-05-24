@@ -614,7 +614,7 @@ public class CodeGenerationASTVisitor extends BaseASTVisitor<String, VoidExcepti
         }
 
         String popParametersCode = "";
-        for (final ParNode parameter : node.params) {
+        for (final ParNode parameter : node.parameters) {
             popParametersCode = nlJoin(
                     popParametersCode,
                     POP
