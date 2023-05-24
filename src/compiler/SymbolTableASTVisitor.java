@@ -24,7 +24,10 @@ public class SymbolTableASTVisitor extends BaseASTVisitor<Void, VoidException> {
     private final Map<String, VirtualTable> classTable = new HashMap<>();
 
     /**
-     * The symbolTable is used to store the symbol table of each scope
+     * The symbolTable is used to store the symbol table of each scope.
+     * It is a list of maps because each scope is a map.
+     * The first element of the list is the global scope.
+     * The last element of the list is the current scope.
      */
     private final List<Map<String, STentry>> symbolTable = new ArrayList<>();
 

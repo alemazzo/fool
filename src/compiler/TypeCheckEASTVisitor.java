@@ -120,9 +120,9 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
     @Override
     public TypeNode visitNode(final FunNode node) throws TypeException {
         if (print) printNode(node, node.id);
-        for (Node dec : node.declarations) {
+        for (final Node declaration : node.declarations) {
             try {
-                visit(dec);
+                visit(declaration);
             } catch (IncomplException ignored) {
             } catch (TypeException e) {
                 System.out.println("Type checking error in a declaration: " + e.text);
@@ -619,9 +619,9 @@ public class TypeCheckEASTVisitor extends BaseEASTVisitor<TypeNode, TypeExceptio
     public TypeNode visitNode(final MethodNode node) throws TypeException {
         if (print) printNode(node, node.methodId);
 
-        for (final DecNode dec : node.declarations) {
+        for (final DecNode declaration : node.declarations) {
             try {
-                visit(dec);
+                visit(declaration);
             } catch (TypeException e) {
                 System.out.println("Type checking error in a method declaration: " + e.text);
             }
