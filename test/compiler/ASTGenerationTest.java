@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import static compiler.CodeUtils.*;
 import static org.antlr.v4.runtime.CharStreams.fromString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ASTGenerationTest {
 
@@ -25,7 +26,7 @@ public class ASTGenerationTest {
 
     @Test
     void testFunNode() {
-        final var funCode = "let fun f:int (x:int) = x; in print(f(1));";
+        final var funCode = "let fun f:int (x:int) x; in print(f(1));";
         final ProgLetInNode progLetInNode = getProgLetInNodeFromAST(fromString(funCode));
 
         assertEquals(1, progLetInNode.declarations.size());
@@ -34,7 +35,7 @@ public class ASTGenerationTest {
 
     @Test
     void testParNode() {
-        final var parCode = "let fun f:int (x:int) = x; in print(f(1));";
+        final var parCode = "let fun f:int (x:int) x; in print(f(1));";
         final ProgLetInNode progLetInNode = getProgLetInNodeFromAST(fromString(parCode));
 
         assertEquals(1, progLetInNode.declarations.size());
@@ -66,7 +67,7 @@ public class ASTGenerationTest {
 
     @Test
     void testIfNode() {
-        final var ifCode = "if 1 then 2 else 3;";
+        final var ifCode = "if 1 then { 2 } else { 3 };";
         final var progNode = getProgNodeFromAST(fromString(ifCode));
         assertEquals(IfNode.class, progNode.exp.getClass());
     }
@@ -102,7 +103,7 @@ public class ASTGenerationTest {
         assertEquals(BoolNode.class, progNode.exp.getClass());
 
         final BoolNode boolNode = (BoolNode) progNode.exp;
-        assertEquals(true, boolNode.value);
+        assertTrue(boolNode.value);
     }
 
     @Test
@@ -117,7 +118,7 @@ public class ASTGenerationTest {
 
     @Test
     void testCallNode() {
-        final var callCode = "let fun f:int (x:int) = x; in print(f(1));";
+        final var callCode = "let fun f:int (x:int) x; in print(f(1));";
         final ProgLetInNode progLetInNode = getProgLetInNodeFromAST(fromString(callCode));
         assertEquals(PrintNode.class, progLetInNode.exp.getClass());
 
